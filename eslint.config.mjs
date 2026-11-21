@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent skills (Spec Kit, Hallmark) ship their own scripts.
+    ".claude/**",
+    ".specify/**",
   ]),
 ]);
 
