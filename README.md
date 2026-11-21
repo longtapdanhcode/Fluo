@@ -57,6 +57,26 @@ scripts/seed.ts            Khóa A1 mẫu
 - **Đổi schema**: sửa `src/db/schema.ts` → `npm run db:generate` → `npm run db:migrate`.
 - **Model AI** mặc định `claude-opus-5-5`. Đặt `AI_EXPLAIN_MODEL=claude-haiku-5-5` nếu muốn giảm chi phí phần giải thích lỗi.
 
+## Quy trình phát triển (Spec Kit)
+
+Dự án dùng [Spec Kit](https://github.com/github/spec-kit) để làm theo hướng "viết spec trước".
+Quy tắc nền nằm trong [.specify/memory/constitution.md](.specify/memory/constitution.md).
+
+Với mỗi tính năng mới, gõ lần lượt trong Claude Code, xem lại kết quả từng bước trước khi sang bước sau:
+
+```text
+/speckit-specify  Mô tả tính năng: làm gì, cho ai, vì sao
+/speckit-clarify  (tùy chọn) trả lời câu hỏi để làm rõ spec
+/speckit-plan     Dùng stack hiện tại của dự án
+/speckit-tasks
+/speckit-analyze  (tùy chọn) kiểm tra spec, plan, tasks có khớp nhau
+/speckit-implement
+/speckit-converge (lặp lại implement + converge tới khi báo Converged)
+```
+
+Spec của từng tính năng nằm trong `specs/<số>-<tên>/`. Sửa lỗi nhỏ thì không cần đi qua quy trình này.
+Cập nhật Spec Kit: `uv tool upgrade specify-cli`, rồi `specify integration upgrade claude`.
+
 ## Lệnh
 
 | Lệnh | Việc |
