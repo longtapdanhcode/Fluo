@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { LessonPlayer } from "@/components/lesson/lesson-player";
 import { buttonVariants } from "@/components/ui/button";
 import { getLessonWithExercises, getTrialLessonId } from "@/lib/content";
@@ -8,6 +9,8 @@ export const metadata = { title: "Học thử" };
 
 /** Khách học thử bài đầu tiên, không cần đăng nhập, không lưu tiến độ. */
 export default async function TryPage() {
+  // Dữ liệu lấy theo từng request, không prerender lúc build/dev.
+  await connection();
   const id = await getTrialLessonId();
   const content = id ? await getLessonWithExercises(id) : null;
 

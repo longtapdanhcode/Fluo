@@ -9,7 +9,7 @@ function client() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("Thiếu DATABASE_URL trong .env.local");
   // prepare: false để chạy được qua connection pooler (Supavisor, transaction mode).
-  return postgres(url, { prepare: false, max: 5 });
+  return postgres(url, { prepare: false, max: 5, connect_timeout: 10, idle_timeout: 20 });
 }
 
 const pg = globalForDb.pg ?? client();
