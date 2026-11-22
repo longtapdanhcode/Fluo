@@ -36,6 +36,13 @@ _Cập nhật: 2026-11-21 · Làm một mình_
 - CMS soạn bài, có nút "AI tạo bản nháp"
 - AI giải thích khi trả lời sai
 
+## Thiết kế
+
+| Hạng mục | Quyết định | Ghi chú |
+|---|---|---|
+| Giao diện chính (người lớn) | **Hallmark, theme Hum** | Giấy kem, thẻ chữ card-stock, vàng lê; token trong `src/app/home.css` trên `[data-theme="hum"]` |
+| Giao diện chế độ Bé | **taste-skill, hướng One motif** | Trắng, xám, bạc hà, thẻ chữ bấm được; code nằm ở nhánh `design/taste`, dùng lại khi làm chế độ Bé |
+
 ## Để sau
 
 - Chế độ Bé (giao diện riêng, cổng phụ huynh, dashboard phụ huynh)
