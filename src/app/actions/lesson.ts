@@ -30,15 +30,18 @@ export async function submitLesson(
   finished: boolean,
 ): Promise<LessonResult> {
   const profile = await requireProfile();
-  if (!(await isLessonUnlocked(lessonId, profile.id))) throw new Error("Bài học chưa mở khóa");
-
-  const lesson = await db.query.lessons.findFirst({ where: eq(lessons.id, lessonId) });
+  // Ba truy vấn độc lập chạy song song (mỗi lượt gọi DB ~200 ms).
+  const [unlocked, lesson, items] = await Promise.all([
+    isLessonUnlocked(lessonId, profile.id),
+    db.query.lessons.findFirst({ where: eq(lessons.id, lessonId) }),
+    // Chỉ chấm câu học viên thấy: bỏ câu đã gỡ khỏi file nội dung.
+    db
+      .select()
+      .from(exercises)
+      .where(and(eq(exercises.lessonId, lessonId), isNull(exercises.archivedAt))),
+  ]);
+  if (!unlocked) throw new Error("Bài học chưa mở khóa");
   if (!lesson) throw new Error("Không tìm thấy bài học");
-  // Chỉ chấm câu học viên thấy: bỏ câu đã gỡ khỏi file nội dung.
-  const items = await db
-    .select()
-    .from(exercises)
-    .where(and(eq(exercises.lessonId, lessonId), isNull(exercises.archivedAt)));
   const byId = new Map(items.map((e) => [e.id, e]));
 
   let correct = 0;
@@ -62,7 +65,8 @@ export async function submitLesson(
     : profile.streakCurrent;
 
   await db.transaction(async (tx) => {
-    await tx
+    // Gửi hai lệnh cùng lúc trên một kết nối (postgres.js pipeline) thay vì chờ lần lượt.
+    const update = tx
       .update(profiles)
       .set({
         hearts,
@@ -76,11 +80,10 @@ export async function submitLesson(
         }),
       })
       .where(eq(profiles.id, profile.id));
-    if (completed) {
-      await tx
-        .insert(lessonCompletions)
-        .values({ profileId: profile.id, lessonId, correct, mistakes, xpEarned });
-    }
+    const insert = completed
+      ? tx.insert(lessonCompletions).values({ profileId: profile.id, lessonId, correct, mistakes, xpEarned })
+      : null;
+    await Promise.all([update, insert]);
   });
 
   revalidatePath("/learn");

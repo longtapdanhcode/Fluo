@@ -109,3 +109,18 @@ npm run lint
 ```bash
 npx next build
 ```
+
+## Kết quả chạy lại (T063, 2026-11-24)
+
+| Bước | Kết quả |
+|---|---|
+| 1. Test | 57/57 qua (6 file test). SC-004 đạt. |
+| 2. `content:check` | Sạch: 1 khóa, 2 unit, 5 bài, 26 câu, 33 từ, 20 ms. Có 5 bài vì đã thêm bài nháp ở bước 6. |
+| 3. Import thay seed cũ | Đã làm khi cài đặt 001, chỉ chạy một lần, không chạy lại. |
+| 4. Chạy lại, giữ tiến độ | Import lại báo `Không có thay đổi` (SC-002). Đổi tên file `01-hello.yaml` → `01-xin-chao.yaml` chỉ làm 1 bài bị sửa, không thêm hay lưu trữ bài nào. T024 đã kiểm sửa đề, đổi tên bài, đảo thứ tự: lượt học xong bài "Xin chào!" vẫn còn, cùng id (SC-003). |
+| 5. Chặn lỗi | Đủ 2 lỗi `missing_explanation` và `unknown_word`, có file, dòng, id câu; thoát mã 1; database không đổi. |
+| 6. `/soan-bai` | Bài "Hỏi thăm sức khỏe": 8 câu, `content:check` sạch ngay lần đầu, import xong bài chưa xuất bản, 8 câu mang cờ AI; xem trước và bật/tắt xuất bản chạy đúng (T049, T057). |
+| 7. Âm thanh | Bài mới: sinh 6 file (2 câu nghe, 4 từ), 0 lỗi; lần chạy thứ hai `0 đã sinh`, tổng 41 file (SC-006). |
+| 8. Quản trị, cổng chất lượng | T057 đạt cả 4 ý. typecheck, lint, `next build` qua. |
+| SC-007 | Khóa giả 4 unit × 8 bài, 326 câu: kiểm xong trong 44 ms (0,4 s cả khởi động). |
+| SC-008 | Trang quản trị không còn ô sửa nội dung; nội dung chỉ sửa qua file trong git. |

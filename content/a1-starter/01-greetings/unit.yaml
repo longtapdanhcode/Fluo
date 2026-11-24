@@ -1,7 +1,7 @@
 id: greetings
 title: Chào hỏi
 description: Chào, giới thiệu bản thân
-lessons: [hello, introduce]
+lessons: [hello, introduce, how-are-you]
 
 vocabulary:
   - word: hello
@@ -51,3 +51,14 @@ vocabulary:
     example: I am twenty years old.
   - word: student
     meaning: học sinh, sinh viên
+  - word: fine
+    meaning: khỏe, ổn
+    example: I'm fine, thank you.
+  - word: thanks
+    meaning: cảm ơn (thân mật)
+    example: I'm fine, thanks.
+  - word: very
+    meaning: rất
+  - word: well
+    meaning: khỏe, tốt
+    example: Very well, thank you.

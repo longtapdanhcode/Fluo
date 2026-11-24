@@ -150,7 +150,7 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 - [x] T021 [US1] Sửa `src/lib/content.ts`: `getCoursePath`, `isLessonUnlocked`, `getTrialLessonId` chỉ lấy unit và bài có `archivedAt IS NULL`; `getLessonWithExercises` chỉ lấy câu có `archivedAt IS NULL` (data-model.md, mục "Quy tắc trạng thái")
 - [x] T022 [US1] Sửa `src/app/actions/lesson.ts`: khi chấm lại bài ở server, bỏ qua câu có `archivedAt` khác null, để số câu khớp những gì học viên thấy
 - [x] T023 [US1] Thu gọn `scripts/seed.ts` chỉ còn tạo huy hiệu (bỏ toàn bộ nội dung bài và đoạn xóa khóa `a1-starter`), sửa chú thích đầu file. Sửa luôn hai thông báo đang bảo chạy `npm run db:seed` để có bài thành `npm run content:import`: `src/app/try/page.tsx` (dòng 20) và `src/app/learn/page.tsx` (dòng 84)
-- [ ] T024 [US1] Kiểm chứng theo quickstart bước 3–4:
+- [X] T024 [US1] Kiểm chứng theo quickstart bước 3–4:
   - Chạy `npm run content:import -- --replace-legacy`, rồi chạy lại để thấy "Không có thay đổi".
   - Học xong một bài, sửa, đổi tên, đảo thứ tự rồi import → tiến độ còn.
 
@@ -299,7 +299,7 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
   - Tìm thư mục khóa và unit theo `id`; gợi ý các từ chưa có trong `unit.yaml`.
   - Gọi `generateLessonDraft`, rồi ghi file mới (không ghi đè nếu không có `--force`, FR-022) và thêm id vào `unit.yaml`.
   - Chạy `parseContent` + `validateContent` trên cả khóa, in lỗi của file mới. Không kết nối DB.
-- [ ] T049 [US4] Kiểm chứng quickstart bước 6: `/soan-bai` → `git diff` → sửa → `content:check` → `content:import` → bài mới chưa xuất bản, câu mang cờ AI
+- [X] T049 [US4] Kiểm chứng quickstart bước 6: `/soan-bai` → `git diff` → sửa → `content:check` → `content:import` → bài mới chưa xuất bản, câu mang cờ AI
 
 **Checkpoint**: Có thể soạn nội dung tính năng 002 nhanh bằng AI, vẫn qua review bằng diff.
 
@@ -327,7 +327,7 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
   - `params` là Promise; gọi `await requireAdmin()` ngay trong page, không chỉ dựa vào layout (constitution, Nguyên tắc II).
   - Lấy bài bằng `getLessonWithExercises`, kể cả bài chưa xuất bản.
   - Render `LessonPlayer` với `mode="preview"`, `exitHref` là trang bài.
-- [ ] T057 [US6] Kiểm chứng trên trình duyệt (desktop và 375px):
+- [X] T057 [US6] Kiểm chứng trên trình duyệt (desktop và 375px):
   - `/admin` hiện đúng số liệu và báo cáo.
   - Xem trước bài chưa xuất bản không cộng XP.
   - Bật xuất bản → bài hiện ở `/learn`; tắt → bài biến mất.
@@ -351,7 +351,7 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
   - Sửa mục AI: soạn nháp bằng lệnh ra file.
 - [x] T061 [P] Sửa `docs/speckit-plan.md`: đánh dấu 001 xong và ghi lệnh mới cho tính năng 002
 - [x] T062 Chạy cổng chất lượng: `npm test`, `npm run typecheck`, `npm run lint`, `npx next build`; sửa mọi lỗi
-- [ ] T063 Chạy lại toàn bộ `quickstart.md` từ bước 1 tới bước 8, ghi kết quả. Tiêu chí SC-001…SC-008 đạt.
+- [X] T063 Chạy lại toàn bộ `quickstart.md` từ bước 1 tới bước 8, ghi kết quả. Tiêu chí SC-001…SC-008 đạt.
 
 ---
 
