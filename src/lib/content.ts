@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import {
   courses,
@@ -29,39 +29,30 @@ export async function getActiveCourse(audience: "adult" | "kid") {
 
 /** Lộ trình: các unit và bài, bài N mở khi đã xong bài N-1. */
 export async function getCoursePath(courseId: string, profileId: string): Promise<PathUnit[]> {
-  const rows = await db
-    .select({
-      unitId: units.id,
-      unitTitle: units.title,
-      unitDescription: units.description,
-      lessonId: lessons.id,
-      lessonTitle: lessons.title,
-      xpReward: lessons.xpReward,
-    })
-    .from(units)
-    .innerJoin(
-      lessons,
-      and(eq(lessons.unitId, units.id), eq(lessons.published, true), isNull(lessons.archivedAt)),
-    )
-    .where(and(eq(units.courseId, courseId), isNull(units.archivedAt)))
-    .orderBy(asc(units.sortOrder), asc(lessons.sortOrder));
-
-  const lessonIds = rows.map((r) => r.lessonId);
-  const done = new Set(
-    lessonIds.length
-      ? (
-          await db
-            .selectDistinct({ lessonId: lessonCompletions.lessonId })
-            .from(lessonCompletions)
-            .where(
-              and(
-                eq(lessonCompletions.profileId, profileId),
-                inArray(lessonCompletions.lessonId, lessonIds),
-              ),
-            )
-        ).map((r) => r.lessonId)
-      : [],
-  );
+  // Hai truy vấn chạy song song: mỗi lượt gọi DB tốn ~200 ms nên càng ít lượt nối tiếp càng nhanh.
+  const [rows, completed] = await Promise.all([
+    db
+      .select({
+        unitId: units.id,
+        unitTitle: units.title,
+        unitDescription: units.description,
+        lessonId: lessons.id,
+        lessonTitle: lessons.title,
+        xpReward: lessons.xpReward,
+      })
+      .from(units)
+      .innerJoin(
+        lessons,
+        and(eq(lessons.unitId, units.id), eq(lessons.published, true), isNull(lessons.archivedAt)),
+      )
+      .where(and(eq(units.courseId, courseId), isNull(units.archivedAt)))
+      .orderBy(asc(units.sortOrder), asc(lessons.sortOrder)),
+    db
+      .selectDistinct({ lessonId: lessonCompletions.lessonId })
+      .from(lessonCompletions)
+      .where(eq(lessonCompletions.profileId, profileId)),
+  ]);
+  const done = new Set(completed.map((r) => r.lessonId));
 
   const result: PathUnit[] = [];
   let previousDone = true;
@@ -85,24 +76,27 @@ export async function getCoursePath(courseId: string, profileId: string): Promis
 
 /** Kiểm tra bài đã mở khóa cho hồ sơ này chưa (chống vào thẳng bằng URL). */
 export async function isLessonUnlocked(lessonId: string, profileId: string) {
-  const lesson = await db.query.lessons.findFirst({
-    where: and(eq(lessons.id, lessonId), eq(lessons.published, true), isNull(lessons.archivedAt)),
-  });
-  if (!lesson) return false;
-  const unit = await db.query.units.findFirst({ where: eq(units.id, lesson.unitId) });
-  if (!unit) return false;
-  const path = await getCoursePath(unit.courseId, profileId);
+  const [row] = await db
+    .select({ courseId: units.courseId })
+    .from(lessons)
+    .innerJoin(units, eq(units.id, lessons.unitId))
+    .where(and(eq(lessons.id, lessonId), eq(lessons.published, true), isNull(lessons.archivedAt)))
+    .limit(1);
+  if (!row) return false;
+  const path = await getCoursePath(row.courseId, profileId);
   return path.some((u) => u.lessons.some((l) => l.id === lessonId && l.status !== "locked"));
 }
 
 export async function getLessonWithExercises(lessonId: string) {
-  const lesson = await db.query.lessons.findFirst({ where: eq(lessons.id, lessonId) });
+  const [lesson, items] = await Promise.all([
+    db.query.lessons.findFirst({ where: eq(lessons.id, lessonId) }),
+    db
+      .select()
+      .from(exercises)
+      .where(and(eq(exercises.lessonId, lessonId), isNull(exercises.archivedAt)))
+      .orderBy(asc(exercises.sortOrder)),
+  ]);
   if (!lesson) return null;
-  const items = await db
-    .select()
-    .from(exercises)
-    .where(and(eq(exercises.lessonId, lessonId), isNull(exercises.archivedAt)))
-    .orderBy(asc(exercises.sortOrder));
   return { lesson, exercises: items };
 }
 

@@ -1,0 +1,86 @@
+# Nháp do AI (Claude Code, /soan-bai) soạn: Hỏi thăm sức khỏe
+# Duyệt bằng git diff, sửa nếu cần, rồi chạy npm run content:check và npm run content:import.
+id: how-are-you
+title: Hỏi thăm sức khỏe
+published: false
+exercises:
+  - id: im-fine-meaning
+    prompt: Chọn nghĩa đúng của “I'm fine”
+    explanation: “Fine” nghĩa là khỏe, ổn; “I'm fine” là “Tôi khỏe”.
+    aiGenerated: true
+    data:
+      type: multiple_choice
+      choices: [{ text: Tôi khỏe }, { text: Tôi đến từ Việt Nam }, { text: Tôi là học sinh }]
+      answerIndex: 0
+
+  - id: how-are-you-match
+    prompt: Ghép từ với nghĩa
+    explanation: Bốn từ hay gặp khi hỏi thăm nhau.
+    aiGenerated: true
+    data:
+      type: match_pairs
+      pairs:
+        - { left: fine, right: khỏe }
+        - { left: thanks, right: cảm ơn }
+        - { left: very, right: rất }
+        - { left: tomorrow, right: ngày mai }
+
+  - id: and-you-listen
+    prompt: Nghe và chọn nghĩa đúng
+    explanation: “And you?” dùng để hỏi lại người kia, nghĩa là “Còn bạn thì sao?”.
+    aiGenerated: true
+    data:
+      type: listen_select
+      audioText: And you?
+      choices: [Còn bạn thì sao?, Bạn tên là gì?, Bạn đến từ đâu?]
+      answerIndex: 0
+
+  - id: im-fine-thanks-blank
+    prompt: Điền từ còn thiếu
+    explanation: Khi được hỏi “How are you?”, trả lời “I'm fine, thanks.” nghĩa là “Tôi khỏe, cảm ơn.”
+    aiGenerated: true
+    data:
+      type: fill_blank
+      sentence: I'm ___, thanks.
+      answer: fine
+      choices: [fine, goodbye, tomorrow]
+
+  - id: answer-how-are-you
+    prompt: Bạn được hỏi “How are you?”. Chọn câu trả lời đúng
+    explanation: “How are you?” hỏi về sức khỏe, nên trả lời bằng “I'm fine, thank you.”
+    aiGenerated: true
+    data:
+      type: multiple_choice
+      choices:
+        - { text: "I'm fine, thank you." }
+        - { text: I'm from Vietnam. }
+        - { text: My name is Minh. }
+      answerIndex: 0
+
+  - id: and-you-blank
+    prompt: Điền từ còn thiếu
+    explanation: “And you?” là cách hỏi lại người kia sau khi trả lời.
+    aiGenerated: true
+    data:
+      type: fill_blank
+      sentence: I'm fine, thanks. And ___?
+      answer: you
+      choices: [you, me, I]
+
+  - id: very-well-thanks
+    prompt: "Xếp thành câu: “Tôi rất khỏe, cảm ơn”"
+    explanation: “Very well” nghĩa là “rất khỏe”; “very” đứng trước “well”.
+    aiGenerated: true
+    data:
+      type: word_bank
+      answer: [I, am, very, well, thanks]
+      distractors: [is, how]
+
+  - id: very-well-type
+    prompt: Nghe và gõ lại
+    explanation: “Very well, thank you” nghĩa là “Rất khỏe, cảm ơn”.
+    aiGenerated: true
+    data:
+      type: listen_type
+      audioText: Very well, thank you.
+      answer: Very well, thank you
