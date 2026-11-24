@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { exercises, lessonCompletions, lessons, profiles } from "@/db/schema";
@@ -34,7 +34,11 @@ export async function submitLesson(
 
   const lesson = await db.query.lessons.findFirst({ where: eq(lessons.id, lessonId) });
   if (!lesson) throw new Error("Không tìm thấy bài học");
-  const items = await db.select().from(exercises).where(eq(exercises.lessonId, lessonId));
+  // Chỉ chấm câu học viên thấy: bỏ câu đã gỡ khỏi file nội dung.
+  const items = await db
+    .select()
+    .from(exercises)
+    .where(and(eq(exercises.lessonId, lessonId), isNull(exercises.archivedAt)));
   const byId = new Map(items.map((e) => [e.id, e]));
 
   let correct = 0;

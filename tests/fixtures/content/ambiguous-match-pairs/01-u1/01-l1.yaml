@@ -1,0 +1,48 @@
+id: l1
+title: Bài 1
+exercises:
+  - id: q1
+    prompt: Chọn nghĩa của “hello”
+    explanation: Lời chào.
+    data:
+      type: multiple_choice
+      choices: [{ text: xin chào }, { text: tạm biệt }]
+      answerIndex: 0
+  - id: q2
+    prompt: Xếp câu
+    explanation: Câu cố định.
+    data:
+      type: word_bank
+      answer: [Nice, to, meet, you]
+      distractors: [goodbye]
+  - id: q3
+    prompt: Điền từ
+    explanation: Học sinh.
+    data:
+      type: fill_blank
+      sentence: I am a ___.
+      answer: student
+      choices: [student, name]
+  - id: q4
+    prompt: Ghép cặp
+    explanation: Lời chào.
+    data:
+      type: match_pairs
+      pairs:
+        - { left: hello, right: xin chào }
+        - { left: goodbye, right: xin chào }
+  - id: q5
+    prompt: Nghe và gõ lại
+    explanation: Giới thiệu tên.
+    data:
+      type: listen_type
+      audioText: My name is Anna
+      answer: My name is Anna
+  - id: q6
+    prompt: Nghe và chọn
+    explanation: Chào buổi sáng.
+    data:
+      type: listen_select
+      audioText: Good morning
+      choices: [Chào buổi sáng, Tạm biệt]
+      answerIndex: 0

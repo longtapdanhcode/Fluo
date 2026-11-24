@@ -40,6 +40,8 @@ Sửa lỗi nhỏ, chỉnh chữ, cập nhật dependency: làm thẳng, không 
 
 ### 001 · Quy trình nội dung bài học
 
+> **Trạng thái (2026-11-23)**: đã cài đặt trên nhánh `feat/001-content-pipeline` (spec, plan, tasks trong `specs/001-lesson-content-pipeline/`). Lệnh mới: `npm test`, `content:check`, `content:import`, `content:audio` (Kokoro, miễn phí) và skill `/soan-bai` trong Claude Code để soạn nháp; cách dùng ở mục "Soạn nội dung" của README.
+
 Nền móng cho mọi nội dung sau này: nội dung lưu thành file trong repo, có kiểm tra tự động, AI soạn nháp, âm thanh TTS.
 
 **`/speckit-specify`**
@@ -58,7 +60,7 @@ Dùng stack hiện có: Next.js 16, Drizzle (đổi schema qua src/db/schema.ts 
 
 ### 002 · Nội dung khóa A1 người lớn
 
-Dùng quy trình 001 để dựng nội dung thật.
+Dùng quy trình 001 để dựng nội dung thật: mỗi bài soạn bằng `/soan-bai` trong Claude Code (hoặc tay) → `git diff` → `npm run content:check` → `npm run content:import` → `npm run content:audio` → xuất bản ở `/admin`.
 
 **`/speckit-specify`**
 ```text

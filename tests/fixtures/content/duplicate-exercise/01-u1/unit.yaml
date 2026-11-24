@@ -1,0 +1,18 @@
+id: u1
+title: Unit 1
+lessons: [l1]
+vocabulary:
+  - word: hello
+    meaning: xin chào
+  - word: goodbye
+    meaning: tạm biệt
+  - word: good morning
+    meaning: chào buổi sáng
+  - word: nice
+    meaning: vui
+  - word: meet
+    meaning: gặp
+  - word: student
+    meaning: học sinh
+  - word: name
+    meaning: tên

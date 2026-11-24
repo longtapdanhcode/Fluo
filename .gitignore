@@ -44,3 +44,6 @@ next-env.d.ts
 
 # design skill working files
 .taste-skill/
+
+# Mẫu giọng đọc thử (content:audio --sample)
+/tmp-audio/

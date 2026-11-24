@@ -17,7 +17,7 @@ export default async function TryPage() {
   if (!content || content.exercises.length === 0) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-muted-foreground">Chưa có bài học thử. Chạy <code>npm run db:seed</code> để thêm bài mẫu.</p>
+        <p className="text-muted-foreground">Chưa có bài học thử. Chạy <code>npm run content:import</code> để nạp bài mẫu.</p>
         <Link href="/" className={buttonVariants()}>
           Về trang chủ
         </Link>

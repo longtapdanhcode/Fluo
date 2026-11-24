@@ -1,0 +1,46 @@
+id: introduce
+title: Giới thiệu bản thân
+published: true
+exercises:
+  - id: my-name-is
+    prompt: Chọn câu đúng để nói “Tôi tên là Lan”
+    explanation: Dùng “My name is …” để giới thiệu tên.
+    data:
+      type: multiple_choice
+      choices: [{ text: My name is Lan }, { text: Me name Lan }, { text: I name is Lan }]
+      answerIndex: 0
+
+  - id: i-am-from
+    prompt: Điền từ còn thiếu
+    explanation: Chủ ngữ “I” đi với “am”.
+    data:
+      type: fill_blank
+      sentence: I ___ from Vietnam.
+      answer: am
+      choices: [am, is, are]
+
+  - id: i-am-a-student
+    prompt: "Xếp thành câu: “Tôi là học sinh”"
+    explanation: “student” bắt đầu bằng phụ âm nên dùng “a”.
+    data:
+      type: word_bank
+      answer: [I, am, a, student]
+      distractors: [is, an]
+
+  - id: where-from-listen
+    prompt: Nghe và chọn câu bạn nghe được
+    explanation: “Where are you from?” là câu hỏi “Bạn đến từ đâu?”.
+    data:
+      type: listen_select
+      audioText: Where are you from?
+      choices: [Where are you from?, Who are you?, How old are you?]
+      answerIndex: 0
+
+  - id: twenty-years-old
+    prompt: Nghe và gõ lại
+    explanation: “I am twenty years old” nghĩa là “Tôi hai mươi tuổi”; “I am” có thể viết gọn là “I'm”.
+    data:
+      type: listen_type
+      audioText: I am twenty years old
+      answer: I am twenty years old
+      acceptable: [I'm twenty years old, I am 20 years old, I'm 20 years old]

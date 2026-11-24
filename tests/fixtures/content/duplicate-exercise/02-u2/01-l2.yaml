@@ -1,0 +1,17 @@
+id: l2
+title: Bài 2
+exercises:
+  - id: q1
+    prompt: Chọn nghĩa của “grandmother”
+    explanation: Bà.
+    data:
+      type: multiple_choice
+      choices: [{ text: bà }, { text: ông }]
+      answerIndex: 0
+  - id: q2
+    prompt: Chọn nghĩa của “hello”
+    explanation: Lời chào.
+    data:
+      type: multiple_choice
+      choices: [{ text: xin chào }, { text: tạm biệt }]
+      answerIndex: 0

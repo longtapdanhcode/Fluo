@@ -1,0 +1,39 @@
+id: members
+title: Thành viên gia đình
+published: true
+exercises:
+  - id: family-match
+    prompt: Ghép từ với nghĩa
+    explanation: Bốn từ chỉ người thân gần nhất trong gia đình.
+    data:
+      type: match_pairs
+      pairs:
+        - { left: mother, right: mẹ }
+        - { left: father, right: bố }
+        - { left: sister, right: chị/em gái }
+        - { left: brother, right: anh/em trai }
+
+  - id: grandmother-meaning
+    prompt: Chọn nghĩa đúng của “grandmother”
+    explanation: “grandmother” là bà; ông là “grandfather”.
+    data:
+      type: multiple_choice
+      choices: [{ text: bà }, { text: ông }, { text: cô }, { text: mẹ }]
+      answerIndex: 0
+
+  - id: she-is-blank
+    prompt: Điền từ còn thiếu
+    explanation: Chủ ngữ “She” đi với “is”.
+    data:
+      type: fill_blank
+      sentence: She ___ my sister.
+      answer: is
+      choices: [is, am, are]
+
+  - id: this-is-my-father
+    prompt: "Xếp thành câu: “Đây là bố tôi”"
+    explanation: “This is …” dùng để giới thiệu một người ở gần.
+    data:
+      type: word_bank
+      answer: [This, is, my, father]
+      distractors: [I, are]

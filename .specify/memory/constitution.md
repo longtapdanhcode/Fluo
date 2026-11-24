@@ -37,21 +37,29 @@ Lý do: Drizzle kết nối bằng role bỏ qua RLS, nên an toàn phụ thuộ
   **KHÔNG ĐƯỢC** import Next.js, React, Supabase hay `@/db`. Đây là phần sẽ dùng lại cho app mobile.
 - Mỗi dạng bài tập được định nghĩa một chỗ: schema Zod trong `types.ts` là chuẩn. Thêm dạng bài
   mới **BẮT BUỘC** cập nhật đủ: schema + `checkAnswer`/`correctAnswerText` + component trong
-  `components/lesson/` + nhãn tiếng Việt + schema sinh bài của AI trong `lib/ai.ts`.
+  `components/lesson/` + nhãn tiếng Việt + quy tắc dạng bài trong skill soạn nháp
+  `.claude/skills/soan-bai/SKILL.md`.
 - Dữ liệu `exercises.data` (jsonb) **BẮT BUỘC** được kiểm bằng schema Zod trước khi ghi vào DB.
 
 Lý do: logic thuần dễ test, dễ chuyển nền tảng, và một schema duy nhất tránh lệch giữa CMS, AI và player.
 
-### IV. Nội dung qua CMS, AI chỉ soạn nháp
+### IV. Nội dung dạng file, AI chỉ soạn nháp
 
-- Nội dung bài học nằm trong database và được soạn qua `/admin`. **KHÔNG ĐƯỢC** viết cứng nội dung
-  bài học vào code, trừ dữ liệu mẫu trong `scripts/seed.ts`.
+- Bản gốc duy nhất của nội dung bài học là file YAML trong thư mục `content/` của repo. Nội dung
+  **BẮT BUỘC** qua bộ kiểm tra tự động (`npm run content:check`) và chỉ vào database bằng
+  `npm run content:import`. **KHÔNG ĐƯỢC** sửa nội dung bài học trực tiếp trong database.
+- `/admin` dùng để xem trước, bật/tắt xuất bản và xem báo cáo kiểm tra; **KHÔNG ĐƯỢC** có chức năng
+  sửa nội dung bài học.
+- **KHÔNG ĐƯỢC** viết cứng nội dung bài học vào code; `scripts/seed.ts` chỉ chứa dữ liệu huy hiệu.
 - Câu do AI tạo **BẮT BUỘC** đi qua schema chặt, được đánh dấu `ai_generated`, và chỉ đến với học
   viên sau khi người duyệt xuất bản bài.
+- Soạn nháp bằng AI làm qua skill `/soan-bai` trong Claude Code: AI ghi file YAML như nội dung soạn
+  tay, người duyệt bằng diff. Việc soạn nội dung **NÊN** không phát sinh chi phí theo lượt.
 - Tính năng AI hướng tới học viên **BẮT BUỘC** có đường lùi khi không có API key hoặc AI lỗi (ví dụ
   dùng lời giải soạn sẵn), và **NÊN** có giới hạn hoặc cache để kiểm soát chi phí.
 
-Lý do: rủi ro lớn nhất của dự án là chất lượng và số lượng nội dung, không phải code.
+Lý do: rủi ro lớn nhất của dự án là chất lượng và số lượng nội dung, không phải code. Nội dung dạng
+file có lịch sử git, review được bằng diff và kiểm tra tự động trước khi tới học viên.
 
 ### V. An toàn cho trẻ em và quyền riêng tư
 
@@ -76,8 +84,9 @@ Lý do: chỉ có một người phát triển, nên chi phí duy trì quan tr�
 ## Ràng buộc kỹ thuật
 
 - **Stack cố định**: Next.js 16 (App Router, Cache Components bật), TypeScript strict, Tailwind v4 +
-  shadcn/ui (Base UI), Supabase (Auth + Postgres), Drizzle ORM, Zod, Claude API qua
-  `@anthropic-ai/sdk`. Đổi stack là thay đổi constitution.
+  shadcn/ui (Base UI), Supabase (Auth + Postgres + Storage), Drizzle ORM, Zod, Claude API qua
+  `@anthropic-ai/sdk` (chỉ cho AI phía học viên). Giọng đọc sinh trên máy bằng Kokoro (`kokoro-js`).
+  Đổi stack là thay đổi constitution.
 - **Next.js 16 khác bản cũ**: trước khi dùng API của Next **BẮT BUỘC** đọc hướng dẫn trong
   `node_modules/next/dist/docs/`. Dùng `proxy.ts` (không phải `middleware.ts`); `params`,
   `searchParams`, `cookies()` đều async; dữ liệu theo request phải nằm trong `<Suspense>` hoặc
@@ -88,7 +97,8 @@ Lý do: chỉ có một người phát triển, nên chi phí duy trì quan tr�
 - **Thời gian**: "ngày" cho streak và mục tiêu tính theo `Asia/Ho_Chi_Minh`.
 - **Giao diện**: chữ trên UI bằng tiếng Việt; nội dung học bằng tiếng Anh. Mọi màn hình **BẮT
   BUỘC** dùng được ở chiều rộng 375px, không cuộn ngang.
-- **AI**: model mặc định `claude-opus-5-5`, đổi qua biến môi trường `AI_MODEL` / `AI_EXPLAIN_MODEL`.
+- **AI**: AI phía học viên dùng model mặc định `claude-opus-5-5`, đổi qua biến môi trường
+  `AI_MODEL` / `AI_EXPLAIN_MODEL`. Soạn nháp nội dung dùng Claude Code, không gọi API.
 
 ## Quy trình và cổng chất lượng
 
@@ -97,11 +107,10 @@ Lý do: chỉ có một người phát triển, nên chi phí duy trì quan tr�
   `/speckit-implement` → `/speckit-converge`. Sửa lỗi nhỏ, chỉnh chữ, cập nhật dependency có thể
   làm trực tiếp.
 - **Nhánh**: làm trên nhánh riêng, không commit thẳng vào `main`.
-- **Cổng trước khi merge** (tất cả **BẮT BUỘC** qua): `npm run typecheck`, `npm run lint`,
-  `next build`. Thay đổi giao diện **BẮT BUỘC** được chạy thử trong trình duyệt, cả desktop và mobile.
-- **Test**: thay đổi logic thuần (Nguyên tắc III) **BẮT BUỘC** kèm unit test.
-  TODO(TEST_RUNNER): áp dụng khi Vitest được thêm vào dự án (Giai đoạn 1 của lộ trình); trước đó,
-  plan ghi rõ cách đã kiểm chứng thủ công.
+- **Cổng trước khi merge** (tất cả **BẮT BUỘC** qua): `npm test`, `npm run typecheck`,
+  `npm run lint`, `next build`. Thay đổi giao diện **BẮT BUỘC** được chạy thử trong trình duyệt, cả desktop và mobile.
+- **Test**: dùng Vitest (`npm test`). Thay đổi logic thuần (Nguyên tắc III), gồm cả bộ kiểm tra
+  nội dung trong `src/lib/content/`, **BẮT BUỘC** kèm unit test.
 - **Tài liệu**: quyết định sản phẩm ghi trong `DECISIONS.md`; cách chạy và cấu trúc trong
   `README.md`. Feature làm thay đổi một trong hai thì cập nhật cùng lúc.
 
@@ -117,4 +126,4 @@ Lý do: chỉ có một người phát triển, nên chi phí duy trì quan tr�
   PATCH khi chỉ làm rõ câu chữ.
 - Rà soát constitution khi kết thúc mỗi giai đoạn của lộ trình (MVP, thử nghiệm, chế độ Bé).
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-21 | **Last Amended**: 2026-11-21
+**Version**: 1.1.1 | **Ratified**: 2026-11-21 | **Last Amended**: 2026-11-23

@@ -81,7 +81,7 @@ export default async function LearnPage() {
                 <Link href="/admin" className="font-bold text-primary underline">
                   Vào trang quản trị
                 </Link>{" "}
-                để soạn bài, hoặc chạy <code>npm run db:seed</code>.
+                để xuất bản bài, hoặc chạy <code>npm run content:import</code> để nạp nội dung.
               </>
             )}
           </div>

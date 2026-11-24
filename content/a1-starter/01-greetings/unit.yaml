@@ -1,0 +1,53 @@
+id: greetings
+title: Chào hỏi
+description: Chào, giới thiệu bản thân
+lessons: [hello, introduce]
+
+vocabulary:
+  - word: hello
+    meaning: xin chào
+    example: Hello, Anna!
+  - word: goodbye
+    meaning: tạm biệt
+  - word: good morning
+    meaning: chào buổi sáng
+    example: Good morning, Minh!
+  - word: good night
+    meaning: chúc ngủ ngon, chào buổi tối khi chia tay
+  - word: thank you
+    meaning: cảm ơn
+  - word: sorry
+    meaning: xin lỗi
+  - word: nice
+    meaning: vui, dễ chịu
+    example: Nice to meet you.
+  - word: meet
+    meaning: gặp
+    forms: [met]
+  - word: see
+    meaning: gặp, nhìn thấy
+    example: See you tomorrow!
+    forms: [saw, seen]
+  - word: tomorrow
+    meaning: ngày mai
+  - word: how
+    meaning: thế nào, bao nhiêu
+    example: How are you?
+  - word: name
+    meaning: tên
+    example: My name is Lan.
+  - word: where
+    meaning: ở đâu
+    example: Where are you from?
+  - word: who
+    meaning: ai
+  - word: old
+    meaning: già, (bao nhiêu) tuổi
+    example: How old are you?
+  - word: twenty
+    meaning: hai mươi
+  - word: year
+    meaning: năm
+    example: I am twenty years old.
+  - word: student
+    meaning: học sinh, sinh viên

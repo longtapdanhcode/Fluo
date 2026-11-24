@@ -1,0 +1,28 @@
+id: how-many
+title: Có bao nhiêu người?
+published: true
+exercises:
+  - id: two-brothers-listen
+    prompt: Nghe và chọn nghĩa đúng
+    explanation: “brothers” là số nhiều của “brother” (anh/em trai).
+    data:
+      type: listen_select
+      audioText: I have two brothers
+      choices: [Tôi có hai anh trai, Tôi có hai chị gái, Tôi có một em trai]
+      answerIndex: 0
+
+  - id: four-people-blank
+    prompt: Điền vào chỗ trống (gõ)
+    explanation: “family” nghĩa là gia đình.
+    data:
+      type: fill_blank
+      sentence: There are four people in my ___.
+      answer: family
+
+  - id: love-family-type
+    prompt: Nghe và gõ lại
+    explanation: “I love my family” nghĩa là “Tôi yêu gia đình tôi”.
+    data:
+      type: listen_type
+      audioText: I love my family
+      answer: I love my family
