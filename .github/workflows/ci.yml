@@ -21,7 +21,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # onnxruntime-node (Kokoro TTS) mặc định tải bản CUDA trên Linux x64 và có thể lỗi 404.
+      # CI không sinh âm thanh nên bỏ qua; bản CPU vẫn được cài.
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
       - run: npm test
       - run: npm run typecheck
       - run: npm run lint
