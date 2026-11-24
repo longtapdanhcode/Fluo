@@ -15,24 +15,60 @@ export function seededShuffle<T>(items: T[], seed: string): T[] {
   return out;
 }
 
+const VIETNAMESE = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+
+/** Có dấu tiếng Việt thì là chữ tiếng Việt: không đọc, vì giọng đọc là giọng tiếng Anh. */
+export function isVietnamese(text: string): boolean {
+  return VIETNAMESE.test(text);
+}
+
+/** Âm thanh đang phát (mỗi lúc chỉ một). */
+let current: { key: string; stop: () => void; playing: () => boolean } | null = null;
+
 /**
  * Phát âm: dùng file audio nếu đã sinh sẵn (TTS lưu trên Storage),
  * nếu chưa có thì dùng giọng đọc có sẵn của trình duyệt (miễn phí, chất lượng tùy máy).
+ * Bấm lại đúng chỗ đang phát thì bỏ qua; bấm chỗ khác thì dừng câu cũ rồi đọc câu mới.
  */
 export function speak(text: string, audioUrl?: string | null, slow = false) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || isVietnamese(text)) return;
+  const key = `${audioUrl ?? text}|${slow}`;
+  if (current?.playing()) {
+    if (current.key === key) return;
+    current.stop();
+  }
   if (audioUrl) {
     const audio = new Audio(audioUrl);
     audio.playbackRate = slow ? 0.7 : 1;
-    void audio.play();
+    let failed = false;
+    current = {
+      key,
+      stop: () => audio.pause(),
+      playing: () => !failed && !audio.paused && !audio.ended,
+    };
+    // File lỗi hoặc không tải được thì quay về giọng của trình duyệt
+    audio.play().catch(() => {
+      failed = true;
+      speakWithBrowser(text, slow, key);
+    });
     return;
   }
+  speakWithBrowser(text, slow, key);
+}
+
+function speakWithBrowser(text: string, slow: boolean, key: string) {
   if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
+  const synth = window.speechSynthesis;
+  synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "en-US";
   u.rate = slow ? 0.6 : 0.95;
-  const voice = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
+  const voice = synth.getVoices().find((v) => v.lang.startsWith("en"));
   if (voice) u.voice = voice;
-  window.speechSynthesis.speak(u);
+  let done = false;
+  u.onend = u.onerror = () => {
+    done = true;
+  };
+  current = { key, stop: () => synth.cancel(), playing: () => !done };
+  synth.speak(u);
 }

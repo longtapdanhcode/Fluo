@@ -19,27 +19,33 @@ Mã thoát: `0` thành công · `1` có lỗi kiểm tra hoặc lỗi chạy · 
 6. Áp dụng trong một transaction. Thành công thì lưu báo cáo `imported`; lỗi giữa chừng thì rollback, in lỗi và thoát `1`.
 - Khóa trong DB có unit hoặc bài thiếu `key` gây lỗi `legacy_course`. Thêm `--replace-legacy` thì xóa khóa đó rồi tạo lại; lệnh này luôn hỏi xác nhận riêng, kể cả khi có `--yes`.
 
-## `npm run content:draft -- --course <id> --unit <id> --topic "<chủ đề>" --words "<w1, w2, …>" [--id <lesson-id>] [--title "<tên>"] [--count 8] [--types multiple_choice,word_bank,…] [--force]`
+## Skill Claude Code `/soan-bai <khóa> <unit> "<chủ đề>" <từ 1, từ 2, …>` (thay `content:draft`, cập nhật 2026-11-23)
 
-- Thiếu `ANTHROPIC_API_KEY`: báo lỗi, thoát `1`, không ghi file.
-- Từ trong `--words` chưa có trong `unit.yaml` được in ra làm gợi ý để thêm vào danh sách từ. Lệnh không tự sửa `unit.yaml`.
-- Ghi vào `content/<course-dir>/<unit-dir>/<lesson-id>.yaml`. File đã có mà không có `--force` thì thoát `1`.
-- Thêm `lesson-id` vào cuối `unit.yaml > lessons`, sửa đúng dòng đó, giữ ghi chú. Thay đổi này hiện trong diff.
-- Sau khi ghi, chạy kiểm tra trên toàn khóa rồi in lỗi liên quan tới file mới. Có lỗi vẫn thoát `0` vì file nháp được giữ để sửa (FR-022).
+Định nghĩa ở `.claude/skills/soan-bai/SKILL.md`. Không gọi API trả phí, không ghi DB.
+- Đọc `course.yaml`, `unit.yaml` của unit đích và các unit trước (từ đã học), cùng `contracts/content-format.md`.
+- Từ trọng tâm chưa có thì thêm vào `vocabulary` của `unit.yaml` đích (kèm nghĩa) và báo cho người soạn.
+- Ghi `<unit-dir>/<NN>-<lesson-id>.yaml`. Không ghi đè file có sẵn trừ khi người soạn bảo.
+- Bài có `published: false`, mọi câu có `aiGenerated: true`.
+- Thêm `lesson-id` vào cuối `unit.yaml > lessons`, giữ ghi chú.
+- Chạy `npm run content:check`, sửa đến khi sạch, rồi báo đường dẫn file và các bước tiếp theo (diff → import → audio → xuất bản).
 
 ## `npm run content:audio [-- --course <id>] [--dry-run] [--limit N]`
 
-- Thiếu `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` hoặc `SUPABASE_SECRET_KEY`: báo lỗi, thoát `1`.
+- Sinh giọng bằng Kokoro-82M chạy trên máy (research R3). Lần đầu tải mô hình vào cache, sau đó chạy offline.
+- Thiếu `SUPABASE_SECRET_KEY`: báo lỗi, thoát `1`.
 - Gom các mục cần âm thanh: câu `listen_select` / `listen_type` và từ vựng chưa gỡ, có `audio_url` null hoặc `audio_hash` khác hash hiện tại. Các mục cùng hash chỉ sinh một lần.
-- Mỗi mục: gọi Azure, upload `lesson-audio/<course>/<hash>.mp3`, rồi cập nhật `audio_url` và `audio_hash` của mọi dòng cùng hash. Giãn cách theo giới hạn gói F0; gặp 429 thì chờ `Retry-After`.
+- Mỗi mục: sinh mp3 (24 kHz mono 48 kbps), upload `lesson-audio/<course>/<hash>.mp3`, rồi cập nhật `audio_url` và `audio_hash` của mọi dòng cùng hash. Không cần giãn cách.
+- Giọng không có trong Kokoro thì mục đó lỗi, kèm danh sách giọng hợp lệ.
 - In tiến độ và tổng kết `đã sinh / bỏ qua / lỗi`. Thoát `1` nếu có mục lỗi; chạy lại sẽ tiếp tục phần còn thiếu.
+
+## `npm run content:audio -- --sample "<câu>" [--voice af_heart]`
+
+- Nghe thử: sinh một file `tmp-audio/<giọng>-<thời điểm>.mp3`. Không cần khóa, không ghi Storage hay DB. Dùng để chọn `ttsVoice` cho khóa.
 
 ## Biến môi trường mới (`.env.example`)
 
 | Biến | Dùng ở | Ghi chú |
 |---|---|---|
-| `AZURE_SPEECH_KEY` | `content:audio` | Bí mật |
-| `AZURE_SPEECH_REGION` | `content:audio` | Ví dụ `southeastasia` |
 | `SUPABASE_SECRET_KEY` | `content:audio` | Khóa `sb_secret_…`, chỉ dùng trong script, không bao giờ `NEXT_PUBLIC_` |
 
 ## Trang quản trị (UI)

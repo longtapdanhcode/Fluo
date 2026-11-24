@@ -1,6 +1,6 @@
 # Quyết định dự án — Web học tiếng Anh
 
-_Cập nhật: 2026-11-21 · Làm một mình_
+_Cập nhật: 2026-11-22 · Làm một mình_
 
 ## Sản phẩm
 
@@ -17,8 +17,9 @@ _Cập nhật: 2026-11-21 · Làm một mình_
 |---|---|---|
 | Tech stack | **Next.js + Supabase**, deploy Vercel | Postgres + Auth + Storage của Supabase; Tailwind + shadcn/ui; Drizzle ORM |
 | Luyện nói | **Chưa làm trong MVP** | MVP chỉ nghe / đọc / viết |
-| AI | **Sinh nội dung bài** (trong CMS, người duyệt lại) + **Giải thích lỗi sai** | Claude API, mặc định `claude-opus-5-5`; đổi model qua `AI_MODEL` / `AI_EXPLAIN_MODEL` (ví dụ Haiku cho phần giải thích lỗi để tiết kiệm) |
-| Audio | TTS sinh sẵn khi soạn bài, lưu Supabase Storage | Không gọi TTS lúc học viên học |
+| AI | **Soạn nháp bài** bằng skill `/soan-bai` trong Claude Code (ghi ra file YAML, người duyệt bằng diff; không gọi API nên không tốn phí theo lượt) + **Giải thích lỗi sai** cho học viên | Giải thích lỗi dùng Claude API (tùy chọn), mặc định `claude-opus-5-5`, đổi qua `AI_EXPLAIN_MODEL` (ví dụ Haiku để tiết kiệm); không có khóa thì dùng lời giải soạn sẵn |
+| Nội dung | **File YAML trong `content/` là bản gốc** | Kiểm tra tự động (`content:check`), đồng bộ bằng `content:import`; `/admin` chỉ xem trước và xuất bản. Xem tính năng 001 |
+| Audio | **Kokoro-82M** (mô hình mở Apache-2.0, chạy trên máy người soạn, miễn phí), sinh sẵn bằng `content:audio`, lưu bucket công khai `lesson-audio` | Giọng mặc định `af_heart`. Không gọi TTS lúc học viên học; chưa có âm thanh thì dùng giọng trình duyệt. Ban đầu chọn Azure Speech nhưng không đăng ký được (2026-11-23) |
 
 ## Dạng bài tập MVP
 
@@ -33,7 +34,7 @@ _Cập nhật: 2026-11-21 · Làm một mình_
 - Bài kiểm tra xếp lớp ngắn
 - Lộ trình Khóa → Unit → Bài → Câu hỏi, 1 khóa A1 khoảng 3 unit
 - XP, streak, tim, huy hiệu
-- CMS soạn bài, có nút "AI tạo bản nháp"
+- Nội dung dạng file có kiểm tra tự động, AI soạn nháp ra file (thay cho CMS soạn trực tiếp)
 - AI giải thích khi trả lời sai
 
 ## Thiết kế

@@ -21,9 +21,13 @@ Người dùng chính của tính năng là **người soạn nội dung** (hi�
 ### Session 2026-11-22
 
 - Q: File bài học trong content/ nên viết bằng định dạng nào? → A: YAML (cho phép ghi chú, giải thích nhiều dòng; lỗi cú pháp YAML được bộ kiểm tra báo như lỗi định dạng)
-- Q: Dùng dịch vụ TTS nào để sinh âm thanh cho câu nghe và từ vựng? → A: Azure Speech (gói miễn phí, giọng neural tiếng Anh)
+- Q: Dùng dịch vụ TTS nào để sinh âm thanh cho câu nghe và từ vựng? → A: Azure Speech (gói miễn phí, giọng neural tiếng Anh). *Đã thay ở phiên 2026-11-23.*
 - Q: Khi một câu dùng từ chưa học, bộ kiểm tra nên xử lý thế nào? → A: Là lỗi chặn import; mỗi câu được khai báo danh sách từ ngoại lệ kèm lý do bắt buộc
 - Q: Lệnh import chạy vào database nào, và chạy khi nào? → A: Một database duy nhất; import chạy tay từ máy người soạn, in host đích và tóm tắt thay đổi rồi hỏi xác nhận trước khi ghi; có chế độ chạy thử không ghi
+
+### Session 2026-11-23
+
+- Q: Không đăng ký được Azure, và Anthropic API tính tiền theo lượt. Thay bằng gì mà vẫn miễn phí và giữ chất lượng? → A: Âm thanh dùng Kokoro-82M chạy trên máy (mã nguồn mở, Apache-2.0, không cần tài khoản). AI soạn nháp do Claude Code (gói đăng ký của người soạn) thực hiện qua skill `/soan-bai`, ghi thẳng file YAML, không gọi API. Hai câu trả lời này thay câu trả lời "Azure Speech" ở phiên 2026-11-22.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -86,18 +90,18 @@ Mỗi unit khai báo danh sách từ vựng (từ, nghĩa tiếng Việt, câu v
 
 ### User Story 4 - AI soạn nháp một bài thành file (Priority: P2)
 
-Người soạn chạy lệnh với chủ đề, unit đích và danh sách từ; AI tạo một file bài học nháp đúng định dạng trong thư mục nội dung. Người soạn xem nháp bằng diff trong git, sửa nếu cần, rồi mới import. Câu do AI tạo được đánh dấu là do AI tạo.
+Người soạn gọi skill `/soan-bai` trong Claude Code với chủ đề, unit đích và danh sách từ; AI tạo một file bài học nháp đúng định dạng trong thư mục nội dung. Người soạn xem nháp bằng diff trong git, sửa nếu cần, rồi mới import. Câu do AI tạo được đánh dấu là do AI tạo.
 
 **Why this priority**: Tăng tốc soạn nội dung cho tính năng 002, nhưng quy trình vẫn chạy được (soạn tay) nếu chưa có.
 
-**Independent Test**: Chạy lệnh với chủ đề "Chào buổi sáng", unit 1, 8 từ → có một file mới, chưa có gì trong database; file đó qua được lệnh kiểm tra hoặc báo rõ lỗi cần sửa; sau khi import, các câu mang dấu "do AI tạo" và bài chưa xuất bản.
+**Independent Test**: Gọi `/soan-bai` với chủ đề "Chào buổi sáng", unit 1, 8 từ → có một file mới, chưa có gì trong database; file đó qua được lệnh kiểm tra hoặc báo rõ lỗi cần sửa; sau khi import, các câu mang dấu "do AI tạo" và bài chưa xuất bản.
 
 **Acceptance Scenarios**:
 
-1. **Given** dịch vụ AI khả dụng, **When** chạy lệnh soạn nháp với chủ đề, unit và danh sách từ, **Then** một file bài mới được ghi vào thư mục của unit đó, database không thay đổi, và lệnh in đường dẫn file cùng kết quả kiểm tra của file.
-2. **Given** đã có file cùng tên ở vị trí đích, **When** chạy lệnh soạn nháp, **Then** lệnh không ghi đè mà tạo tên khác hoặc dừng và báo, trừ khi người soạn yêu cầu ghi đè rõ ràng.
-3. **Given** AI trả về câu sai định dạng hoặc dùng từ ngoài phạm vi, **When** lệnh nhận kết quả, **Then** file vẫn được ghi (để người soạn sửa) nhưng lệnh báo rõ các lỗi kiểm tra.
-4. **Given** không có khóa API AI hoặc AI lỗi, **When** chạy lệnh, **Then** lệnh dừng với thông báo dễ hiểu, không ghi file rỗng hay hỏng.
+1. **Given** Claude Code đang mở trong repo, **When** gọi `/soan-bai` với chủ đề, unit và danh sách từ, **Then** một file bài mới được ghi vào thư mục của unit đó, database không thay đổi, và AI báo đường dẫn file cùng kết quả `content:check`.
+2. **Given** đã có file cùng tên ở vị trí đích, **When** soạn nháp, **Then** AI không ghi đè mà tạo tên khác hoặc dừng và báo, trừ khi người soạn yêu cầu ghi đè rõ ràng.
+3. **Given** bản nháp đầu có câu sai định dạng hoặc dùng từ ngoài phạm vi, **When** AI chạy `content:check`, **Then** AI sửa file cho đến khi sạch; lỗi nào không tự sửa được thì báo rõ cho người soạn.
+4. **Given** không có Claude Code, **When** cần bài mới, **Then** người soạn vẫn soạn tay được theo cùng định dạng; quy trình không phụ thuộc dịch vụ AI trả phí theo lượt.
 5. **Given** bài nháp do AI tạo được import, **When** xem trong database, **Then** các câu được đánh dấu do AI tạo và bài ở trạng thái chưa xuất bản.
 
 ---
@@ -194,17 +198,17 @@ Quản trị viên vào `/admin` để xem cây khóa → unit → bài như h�
 
 **AI soạn nháp**
 
-- **FR-021**: Hệ thống MUST có lệnh nhận chủ đề, khóa/unit đích, danh sách từ (và tùy chọn số câu, các dạng bài mong muốn) và dùng AI tạo một file bài học nháp đúng định dạng FR-003 trong thư mục của unit đích.
-- **FR-022**: Lệnh soạn nháp MUST không ghi gì vào database, MUST không ghi đè file có sẵn trừ khi được yêu cầu rõ, và MUST chạy bộ kiểm tra trên file vừa tạo rồi in kết quả.
+- **FR-021**: Hệ thống MUST có skill Claude Code `/soan-bai` nhận chủ đề, khóa/unit đích, danh sách từ (và tùy chọn số câu, các dạng bài mong muốn) và tạo một file bài học nháp đúng định dạng FR-003 trong thư mục của unit đích, thêm id bài vào file unit. Soạn nháp MUST không phát sinh chi phí theo lượt (không gọi API AI trả phí).
+- **FR-022**: Soạn nháp MUST không ghi gì vào database, MUST không ghi đè file có sẵn trừ khi được yêu cầu rõ, và MUST chạy bộ kiểm tra trên file vừa tạo rồi báo kết quả.
 - **FR-023**: Câu do AI tạo MUST mang cờ "do AI tạo" trong file; cờ này MUST được giữ khi import. Bài nháp do AI tạo MUST ở trạng thái chưa xuất bản.
-- **FR-024**: Khi thiếu khóa API AI hoặc AI lỗi, lệnh MUST dừng với thông báo dễ hiểu và không ghi file hỏng.
+- **FR-024**: Quy trình MUST chạy được khi không có AI: người soạn viết file tay theo cùng định dạng và cùng bộ kiểm tra.
 - **FR-025**: AI MUST chỉ được dùng từ trong danh sách từ đã cho cùng từ của các unit trước; kết quả MUST đi qua cùng bộ kiểm tra như nội dung soạn tay.
 
 **Âm thanh**
 
 - **FR-026**: Hệ thống MUST có lệnh sinh âm thanh đọc cho mọi câu dạng nghe (nghe rồi chọn, nghe rồi gõ) và mọi từ vựng chưa có âm thanh hoặc cần sinh lại; file âm thanh được lưu lên kho lưu trữ công khai đọc được và đường dẫn được điền vào câu/từ tương ứng.
 - **FR-027**: Lệnh sinh âm thanh MUST không sinh lại nội dung đã có âm thanh còn hợp lệ, MUST tiếp tục được sau khi bị gián đoạn, và MUST in số lượng đã sinh / bỏ qua / lỗi.
-- **FR-028**: Âm thanh MUST là giọng tiếng Anh tự nhiên do Azure Speech sinh, cùng một giọng cho cả khóa (giọng khai báo ở file khóa). Thiếu khóa Azure thì lệnh dừng với thông báo dễ hiểu, không điền đường dẫn nào; app vẫn dùng giọng trình duyệt (FR-029).
+- **FR-028**: Âm thanh MUST là giọng tiếng Anh tự nhiên do mô hình Kokoro chạy trên máy người soạn sinh (miễn phí, không cần tài khoản), cùng một giọng cho cả khóa (giọng khai báo ở file khóa, kiểm tra tên giọng khi `content:check`). Thiếu khóa Storage thì lệnh dừng với thông báo dễ hiểu, không điền đường dẫn nào; app vẫn dùng giọng trình duyệt (FR-029). Lệnh MUST có chế độ nghe thử một câu với một giọng mà không ghi gì lên Storage hay database.
 - **FR-029**: Màn học MUST phát âm thanh đã sinh khi có, và vẫn dùng giọng của trình duyệt khi chưa có.
 
 **Trang quản trị**
@@ -213,7 +217,7 @@ Quản trị viên vào `/admin` để xem cây khóa → unit → bài như h�
 - **FR-031**: Quản trị viên MUST xem trước được mọi bài (kể cả chưa xuất bản) như học viên, không ghi tiến độ, XP, tim hay chuỗi ngày.
 - **FR-032**: Quản trị viên MUST bật/tắt được xuất bản cho bài và cho khóa; thay đổi có hiệu lực ngay với học viên.
 - **FR-033**: Trang quản trị MUST hiển thị kết quả kiểm tra gần nhất (FR-010).
-- **FR-034**: Trang quản trị MUST không còn chức năng tạo, sửa, xóa câu hỏi, bài, unit hay khóa, và MUST không còn nút "AI tạo bản nháp" ghi thẳng vào database (thay bằng lệnh của FR-021).
+- **FR-034**: Trang quản trị MUST không còn chức năng tạo, sửa, xóa câu hỏi, bài, unit hay khóa, và MUST không còn nút "AI tạo bản nháp" ghi thẳng vào database (thay bằng skill của FR-021).
 - **FR-035**: Mọi chức năng của trang quản trị và xem trước MUST chỉ dành cho quản trị viên, như cơ chế hiện có.
 
 ### Key Entities
@@ -243,9 +247,9 @@ Quản trị viên vào `/admin` để xem cây khóa → unit → bài như h�
 ## Assumptions
 
 - Người soạn nội dung là người phát triển (hoặc người được cấp quyền repo), quen dùng terminal và git; không cần giao diện soạn bài cho người không biết git trong tính năng này.
-- Các lệnh (kiểm tra, import, soạn nháp AI, sinh âm thanh) chạy tay trên máy người soạn với biến môi trường của dự án, vào database duy nhất của dự án; chưa có database dev riêng và chưa chạy tự động trên CI hay khi deploy (có thể thêm sau).
-- Model AI cho lệnh soạn nháp dùng mặc định của dự án (đổi qua biến môi trường, theo constitution).
-- Sinh âm thanh cho khóa A1 (dưới khoảng 50.000 ký tự) nằm trong gói miễn phí của Azure Speech; không phát sinh chi phí trong tính năng này.
+- Các lệnh (kiểm tra, import, sinh âm thanh) và skill soạn nháp chạy tay trên máy người soạn với biến môi trường của dự án, vào database duy nhất của dự án; chưa có database dev riêng và chưa chạy tự động trên CI hay khi deploy (có thể thêm sau).
+- Soạn nháp chạy trong Claude Code bằng gói đăng ký sẵn có của người soạn; không có chi phí theo lượt.
+- Âm thanh sinh trên máy người soạn bằng mô hình mở Kokoro-82M; lần đầu tải mô hình (khoảng 300 MB) rồi chạy offline, không phát sinh chi phí.
 - Danh sách "từ chức năng chung" (mạo từ, đại từ, giới từ, trợ động từ cơ bản…) được khai báo ở cấp khóa trong file, không viết cứng trong code.
 - Các bài đã có trong database tạo bằng seed cũ có thể bị thay thế khi chuyển sang quy trình mới, vì hiện chưa có học viên thật; từ sau lần import đầu, tiến độ học viên phải được giữ (FR-013).
 - Hình ảnh cho câu "chọn hình" vẫn dùng đường dẫn có sẵn; sinh hoặc tải hình lên không thuộc phạm vi.

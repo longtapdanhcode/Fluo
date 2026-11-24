@@ -12,8 +12,8 @@ Lệnh import tính kế hoạch đồng bộ bằng hàm thuần rồi ghi tron
 
 Ngoài ra có thêm:
 - Bảng từ vựng nối nhiều-nhiều với câu hỏi.
-- Lệnh AI soạn nháp ra file YAML.
-- Lệnh sinh âm thanh bằng Azure Speech, lưu Supabase Storage theo hash nội dung.
+- Skill Claude Code `/soan-bai` soạn nháp ra file YAML, không gọi API trả phí (R9, cập nhật 2026-11-23).
+- Lệnh sinh âm thanh bằng Kokoro chạy trên máy (miễn phí), lưu Supabase Storage theo hash nội dung (R3, cập nhật 2026-11-23).
 - `/admin` chuyển sang chỉ xem trước, xuất bản và hiện báo cáo kiểm tra.
 
 Thêm Vitest cho phần logic thuần. Constitution được sửa lên v1.1.0 để khớp cách soạn mới.
@@ -39,7 +39,7 @@ Thêm Vitest cho phần logic thuần. Constitution được sửa lên v1.1.0 �
 **Constraints**:
 - Import là tất cả hoặc không (một transaction).
 - Không mất `lesson_completions`.
-- Gói Azure F0 giới hạn khoảng 20 yêu cầu/phút, nên script âm thanh phải giãn cách và chạy tiếp được sau khi dừng.
+- Script âm thanh phải chạy tiếp được sau khi dừng. Kokoro chạy trên máy nên không có giới hạn lượt gọi.
 - Mọi màn quản trị dùng được ở 375px.
 
 **Scale/Scope**: 1–2 khóa, dưới 50 bài, dưới 500 câu, dưới 500 từ trong giai đoạn MVP. Một người soạn.
@@ -53,13 +53,13 @@ Không còn mục NEEDS CLARIFICATION. Các quyết định nằm ở [research.
 | Nguyên tắc | Đánh giá | Ghi chú |
 |---|---|---|
 | I. Một codebase, hai đối tượng | ✅ | Spec ghi rõ chế độ Người lớn. Định dạng file có `audience`, không giả định gì riêng cho người lớn. Không thêm app hay DB mới |
-| II. Server là nguồn sự thật | ✅ | Script và route admin truy cập DB phía server. Bảng mới bật RLS, không policy. `SUPABASE_SECRET_KEY`, `AZURE_SPEECH_KEY` không có `NEXT_PUBLIC_` và chỉ dùng trong script. Preview qua `requireAdmin`, không ghi tiến độ. Bucket âm thanh đọc công khai vì nội dung bài học công khai; ghi chỉ bằng secret key |
-| III. Logic thuần, tách framework | ✅ | `src/lib/content/` không import Next, React, Supabase hay `@/db`; chỉ dùng `zod`, `yaml` và `src/lib/exercises/`. `exerciseData` vẫn là schema duy nhất cho data câu hỏi. Không thêm dạng bài mới. Schema AI trong `lib/ai.ts` được cập nhật cho lệnh nháp |
+| II. Server là nguồn sự thật | ✅ | Script và route admin truy cập DB phía server. Bảng mới bật RLS, không policy. `SUPABASE_SECRET_KEY` không có `NEXT_PUBLIC_` và chỉ dùng trong script. Preview qua `requireAdmin`, không ghi tiến độ. Bucket âm thanh đọc công khai vì nội dung bài học công khai; ghi chỉ bằng secret key |
+| III. Logic thuần, tách framework | ✅ | `src/lib/content/` không import Next, React, Supabase hay `@/db`; chỉ dùng `zod`, `yaml` và `src/lib/exercises/`. `exerciseData` vẫn là schema duy nhất cho data câu hỏi. Không thêm dạng bài mới. Nháp AI là file YAML, đi qua cùng schema chặt |
 | IV. Nội dung dạng file, AI chỉ soạn nháp | ✅ (đã sửa) | Bản v1.0.0 ghi "soạn qua `/admin`". Constitution **đã sửa lên v1.1.0** trên nhánh này (task T058, research R11) trước khi viết code. Tinh thần giữ nguyên: nội dung không viết cứng trong code, AI chỉ ra nháp có cờ `ai_generated` và chưa xuất bản tới khi người duyệt |
 | V. An toàn trẻ em, riêng tư | ✅ | Không thu dữ liệu cá nhân mới. Không có tính năng cho trẻ |
-| VI. Đơn giản | ✅ | 2 dependency mới (`yaml`, `vitest`) có lý do ở R1 và R10. Azure gọi REST bằng `fetch`, không SDK. Dịch vụ ngoài mới duy nhất là Azure Speech, dùng gói miễn phí (R3). Feature chia được thành các bước kiểm chứng độc lập theo user story |
+| VI. Đơn giản | ✅ | Dependency mới: `yaml`, `vitest` (R1, R10); `kokoro-js`, `@breezystack/lamejs` chỉ là devDependency cho script (R3). Không thêm dịch vụ ngoài trả phí nào. Feature chia được thành các bước kiểm chứng độc lập theo user story |
 | Ràng buộc kỹ thuật | ✅ | Đổi schema qua `schema.ts` → generate → migrate. RLS đặt trong custom migration. Đọc `node_modules/next/dist/docs/` trước khi viết route preview (R12) |
-| Quy trình | ✅ | Làm trên nhánh riêng. Cổng: typecheck, lint, build, `npm test`, chạy thử trình duyệt desktop và 375px. Cập nhật README (lệnh mới, biến môi trường) và DECISIONS (Azure TTS, nội dung dạng file) |
+| Quy trình | ✅ | Làm trên nhánh riêng. Cổng: typecheck, lint, build, `npm test`, chạy thử trình duyệt desktop và 375px. Cập nhật README (lệnh mới, biến môi trường) và DECISIONS (Kokoro TTS, soạn nháp bằng Claude Code, nội dung dạng file) |
 
 **Re-check sau Phase 1**: thiết kế ở data-model và contracts không tạo vi phạm mới. Vi phạm duy nhất (Nguyên tắc IV) được xử lý bằng sửa đổi constitution, ghi trong Complexity Tracking.
 
@@ -103,7 +103,7 @@ src/
 │   │   ├── report.ts                 # in lỗi ra terminal
 │   │   └── *.test.ts
 │   ├── content.ts                    # truy vấn học viên: lọc archived_at
-│   └── ai.ts                         # + generateLessonDraft, − generateExercises
+│   └── ai.ts                         # − generateExercises (chỉ còn explainMistake)
 ├── app/
 │   ├── admin/
 │   │   ├── page.tsx                  # cây, số liệu, báo cáo kiểm tra
@@ -116,17 +116,17 @@ src/
 scripts/
 ├── content-check.ts
 ├── content-import.ts
-├── content-draft.ts
 ├── content-audio.ts
-├── lib/{load-files.ts, db-snapshot.ts, apply-sync.ts, azure-tts.ts, storage.ts, prompt.ts}
+├── lib/{load-files.ts, db-snapshot.ts, apply-sync.ts, kokoro-tts.ts, storage.ts}
 └── seed.ts                           # chỉ còn tạo huy hiệu
 
 tests/fixtures/content/<tình-huống>/  # mỗi loại lỗi một bộ, cộng bộ "clean"
 drizzle/                              # migration sinh tự động + custom migration RLS
-vitest.config.ts
+vitest.config.mts
+.claude/skills/soan-bai/SKILL.md      # soạn nháp bài bằng Claude Code
 ```
 
-**Structure Decision**: giữ một project Next.js. Logic thuần đặt trong `src/lib/content/` (dùng lại được cho app mobile, test bằng Vitest). Phần I/O (đọc file, DB, Azure, Storage) đặt trong `scripts/lib/` để `src/lib/content/` không phụ thuộc hạ tầng.
+**Structure Decision**: giữ một project Next.js. Logic thuần đặt trong `src/lib/content/` (dùng lại được cho app mobile, test bằng Vitest). Phần I/O (đọc file, DB, Kokoro, Storage) đặt trong `scripts/lib/` để `src/lib/content/` không phụ thuộc hạ tầng.
 
 ## Thứ tự triển khai gợi ý (cho /speckit-tasks)
 
@@ -134,7 +134,7 @@ vitest.config.ts
 2. **US2 + US1 (P1)**: schema file, parse, validate kèm test; chuyển seed thành file; `content:check`; `planSync` kèm test; `content:import`; lọc `archived_at` trong truy vấn học viên.
 3. **US3**: từ vựng và liên kết câu ↔ từ (chung bước import).
 4. **US5**: `content:audio`.
-5. **US4**: `content:draft`.
+5. **US4**: skill `/soan-bai`.
 6. **US6**: dọn `/admin`, preview, khung báo cáo.
 7. **Hoàn thiện**: README, DECISIONS, `.env.example`, cổng chất lượng, quickstart.
 

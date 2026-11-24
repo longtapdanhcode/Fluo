@@ -15,15 +15,27 @@ Mỗi mục: **Quyết định** · **Lý do** · **Phương án đã cân nhắ
 - **Lý do**: không phải tách module, không đổi hành vi app. Script không import React nên điều kiện `react-server` không ảnh hưởng gì khác.
 - **Đã cân nhắc**: tách `ai.ts` thành phần lõi không `server-only` cộng một lớp bọc (thêm file, dễ lệch); tự tạo kết nối Drizzle riêng như `scripts/seed.ts` hiện nay (nhân đôi cấu hình pooler).
 
-## R3. Nhà cung cấp TTS: Azure Speech
+## R3. Sinh giọng đọc: Kokoro chạy trên máy (cập nhật 2026-11-23)
 
-- **Quyết định**: Azure AI Speech, gọi REST `POST https://<region>.tts.speech.microsoft.com/cognitiveservices/v1` với SSML, định dạng `audio-24khz-48kbitrate-mono-mp3`. Không cài SDK, dùng `fetch` có sẵn của Node.
-- **Lý do** (đã chốt ở clarify):
-  - Gói miễn phí F0 có giọng neural, khoảng 0,5 triệu ký tự mỗi tháng. Khóa A1 ước tính dưới 50.000 ký tự, tính năng 002 cũng dưới 100.000.
-  - Xác thực chỉ cần một key và region (`AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`). Không cần project cloud, billing hay file service account như Google.
-  - Có nhiều giọng en-US và en-GB tự nhiên; giọng mặc định khai báo trong `course.yaml` (ví dụ `en-US-AvaMultilingualNeural`).
-- **Giới hạn cần lưu ý**: gói F0 giới hạn số yêu cầu mỗi phút (khoảng 20 yêu cầu/60 giây, xác minh lại khi tạo resource). Vì vậy script chạy tuần tự có giãn cách, gặp HTTP 429 thì chờ theo `Retry-After` rồi thử lại. Với khoảng 500 mục, lần đầu mất chừng 25 phút; các lần sau chỉ sinh phần đổi. Nếu cần nhanh hơn, nâng lên S0 (trả theo dùng, dưới 1 USD cho cả khóa) mà không phải sửa code.
-- **Đã cân nhắc**: Google Cloud TTS (gói miễn phí lớn hơn nhưng cấu hình rườm rà); OpenAI/ElevenLabs (không có gói miễn phí phù hợp, thêm dịch vụ trả phí); giọng trình duyệt (chất lượng không đều giữa máy, giữ làm đường lùi).
+- **Quyết định**: mô hình mở **Kokoro-82M** (bản ONNX `onnx-community/Kokoro-82M-v1.0-ONNX`, dtype `fp32`) chạy trên máy người soạn qua gói npm `kokoro-js` 1.2.1 (dùng `@huggingface/transformers` + `onnxruntime-node`, backend `cpu`).
+  - Kokoro trả PCM 24 kHz; script mã hóa sang mp3 mono 48 kbps bằng `@breezystack/lamejs` (JS thuần, không cần ffmpeg).
+  - Cả hai gói là devDependency, chỉ dùng trong script, không vào bundle của app.
+  - Mã ở `scripts/lib/kokoro-tts.ts`.
+- **Lý do**:
+  - Miễn phí hoàn toàn, không cần tài khoản hay khóa; giấy phép Apache-2.0 nên được dùng cho sản phẩm. Azure không đăng ký được, Google cần thẻ thanh toán.
+  - Chất lượng gần giọng neural thương mại. Giọng tốt nhất theo bảng điểm của Kokoro là `af_heart` (A) và `af_bella` (A-); có giọng Mỹ (`a…`) và Anh (`b…`), nam và nữ. Khóa A1 dùng `af_heart`.
+  - Không giới hạn lượt gọi. Lần đầu tải mô hình mất vài phút, sau đó mỗi câu ngắn mất khoảng 0,5 giây trên Apple M5, nên khóa 500 mục xong trong vài phút (Azure F0 cần khoảng 25 phút do giãn cách).
+- **Giới hạn cần lưu ý**:
+  - Chỉ có tiếng Anh Mỹ và Anh. Không đọc được tiếng Việt, nhưng tính năng này không cần.
+  - `onnxruntime-node` crash lúc thoát nếu gọi `process.exit()` trên macOS ("mutex lock failed"), nên script đặt `process.exitCode` rồi để tiến trình tự kết thúc.
+  - Backend `wasm` không hỗ trợ trên Node.
+  - Tên giọng được kiểm ở `content:check` theo dạng `^[ab][fm]_[a-z]+$`; tên sai hẳn thì `content:audio` báo kèm danh sách giọng hợp lệ.
+- **Đã cân nhắc**:
+  - Azure Speech gói F0: quyết định ban đầu, bỏ vì không đăng ký được.
+  - Edge TTS (`msedge-tts`): đúng các giọng neural của Azure và không cần khóa, nhưng là API không chính thức của trình đọc Edge, có thể ngừng bất cứ lúc nào và vùng xám về điều khoản.
+  - Piper: nhẹ hơn nhưng giọng kém tự nhiên hơn Kokoro.
+  - Google Cloud TTS: cần tài khoản thanh toán.
+  - Giọng trình duyệt: chất lượng không đều giữa các máy; vẫn giữ làm đường lùi.
 
 ## R4. Lưu âm thanh: Supabase Storage
 
@@ -61,7 +73,7 @@ Mỗi mục: **Quyết định** · **Lý do** · **Phương án đã cân nhắ
   | listen_type | `audioText`, `answer`, `acceptable` |
   | word_bank | `answer`, `distractors` |
   | match_pairs | `pairs[].left` |
-  | fill_blank | `sentence`, `answer`, `choices` |
+  | fill_blank | `sentence` đã điền `answer` vào chỗ trống, `choices` |
 
   Ngôn ngữ lựa chọn (`choicesLang`) khai báo được trong file; mặc định tự nhận: chuỗi có chữ cái tiếng Việt có dấu thì coi là tiếng Việt. Từ tiếng Việt không dấu như "anh", "em" thì phải khai báo `choicesLang: vi`.
 - **Chuẩn hóa token**: dùng lại `normalize()` của `src/lib/exercises/check.ts` (bỏ hoa thường, dấu câu, nháy cong), tách theo khoảng trắng và gạch nối.
@@ -89,15 +101,21 @@ Mỗi mục: **Quyết định** · **Lý do** · **Phương án đã cân nhắ
 - **Câu trùng** (FR-007c): khóa so sánh là `type + normalize(prompt) + JSON chuẩn hóa của data`, so trong toàn khóa.
 - **Đã cân nhắc**: dùng AI để chấm "câu mơ hồ" (tốn chi phí, kết quả không ổn định; để sau).
 
-## R9. AI soạn nháp
+## R9. AI soạn nháp: skill Claude Code `/soan-bai` (cập nhật 2026-11-23)
 
 - **Quyết định**:
-  - Thêm hàm `generateLessonDraft()` trong `src/lib/ai.ts`, dùng lại model `AI_MODEL` (mặc định `claude-opus-5-5`) và kiểu structured output Zod "lỏng" như `generateExercises`.
-  - Prompt nhận thêm từ vựng được phép (unit đích, các unit trước, `commonWords`) và yêu cầu mỗi câu có `explanation`.
-  - Kết quả được dựng thành YAML bằng `yaml.stringify`, mọi câu có `aiGenerated: true`, bài có `published: false`, rồi chạy bộ kiểm tra trên file vừa ghi.
-  - Bỏ `generateExercises` cùng nút AI trong `/admin` (FR-034).
-- **Lý do**: dùng chung một schema chặt (constitution, Nguyên tắc III). Nháp AI đi qua đúng bộ kiểm tra của nội dung soạn tay (FR-025).
-- **Đã cân nhắc**: AI ghi thẳng vào DB như hiện nay (không review được bằng diff).
+  - Soạn nháp bằng skill dự án `.claude/skills/soan-bai/SKILL.md`. Claude Code đọc `course.yaml`, `unit.yaml` (từ đã học) và định dạng ở `contracts/content-format.md`, rồi viết thẳng file YAML.
+  - Mọi câu có `aiGenerated: true`, bài có `published: false`. Skill thêm id bài vào `unit.yaml`, chạy `content:check` và sửa đến khi sạch.
+  - Bỏ lệnh `content:draft`, `generateLessonDraft()` trong `src/lib/ai.ts` và `src/lib/content/draft.ts`.
+  - `explainMistake()` (AI giải thích lỗi cho học viên) vẫn giữ. Đây là tính năng tùy chọn: không có `ANTHROPIC_API_KEY` thì app dùng lời giải thích soạn sẵn.
+- **Lý do**:
+  - Gọi Anthropic API tính tiền theo lượt, trong khi người soạn đã có gói Claude Code. Cùng model Claude nên chất lượng như nhau.
+  - Claude Code tự chạy `content:check` và sửa lỗi ngay, tốt hơn lệnh cũ (lệnh cũ chỉ in lỗi).
+  - Nháp vẫn đi qua đúng bộ kiểm tra như nội dung soạn tay (FR-025) và được duyệt bằng diff (Nguyên tắc IV).
+- **Đã cân nhắc**:
+  - Giữ `content:draft` với Anthropic API: trả phí theo lượt.
+  - Gemini hoặc Groq gói miễn phí: giới hạn lượt, dữ liệu gói miễn phí có thể bị dùng để huấn luyện, chất lượng tiếng Việt không đều.
+  - AI ghi thẳng vào DB: không review được bằng diff.
 
 ## R10. Test runner
 

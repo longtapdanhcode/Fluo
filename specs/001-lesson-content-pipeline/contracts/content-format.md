@@ -25,7 +25,7 @@ description: Những câu giao tiếp đầu tiên cho người mới bắt đ�
 level: a1                       # pre_a1 | a1 | a2 | b1 | b2 | c1
 audience: adult                 # adult | kid
 published: true                 # chỉ áp dụng khi tạo khóa lần đầu
-ttsVoice: en-US-AvaMultilingualNeural
+ttsVoice: af_heart              # giọng Kokoro: a|b (Mỹ|Anh) + f|m (nữ|nam), ví dụ af_bella, bm_george
 units: [greetings, family]      # id unit theo thứ tự
 commonWords: [a, an, the, i, you, he, she, it, we, they, is, am, are, to, and, of, in, on, my, your]
 names: [Anna, Minh, Lan]        # tên riêng được phép

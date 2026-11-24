@@ -12,6 +12,8 @@ export type PlayerExercise = {
   data: ExerciseData;
   audioUrl: string | null;
   imageUrl: string | null;
+  /** Lời giải soạn sẵn; chỉ truyền ở chế độ xem trước của quản trị. */
+  explanation?: string | null;
 };
 
 type Props<T extends ExerciseData["type"]> = {

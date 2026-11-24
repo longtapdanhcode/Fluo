@@ -12,10 +12,14 @@ import { ExerciseView, type PlayerExercise } from "./exercises";
 
 type Feedback = { correct: boolean; answer: string; explanation: string | null; loadingExplain: boolean };
 
+type Mode = "learn" | "trial" | "preview";
+
 /**
  * Màn chơi một bài học.
  * - mode "learn": đã đăng nhập, nộp kết quả lên server (XP, streak, tim).
  * - mode "trial": khách thử, không lưu gì.
+ * - mode "preview": quản trị viên xem trước bài (kể cả chưa xuất bản), không lưu gì,
+ *   hiện lời giải soạn sẵn khi trả lời sai.
  * Câu sai được hỏi lại ở cuối bài cho tới khi đúng.
  */
 export function LessonPlayer({
@@ -23,11 +27,13 @@ export function LessonPlayer({
   exercises,
   initialHearts,
   mode,
+  exitHref: exitHrefProp,
 }: {
   lessonId: string;
   exercises: PlayerExercise[];
   initialHearts: number;
-  mode: "learn" | "trial";
+  mode: Mode;
+  exitHref?: string;
 }) {
   const [queue, setQueue] = useState(() => exercises.map((_, i) => i));
   const [pos, setPos] = useState(0);
@@ -44,7 +50,7 @@ export function LessonPlayer({
 
   const finish = useCallback(
     (answers: Record<string, ExerciseResponse>, finished: boolean, heartsLeft: number) => {
-      if (mode === "trial") {
+      if (mode !== "learn") {
         const mistakes = Object.entries(answers).filter(
           ([id, r]) => !checkAnswer(exercises.find((e) => e.id === id)!.data, r),
         ).length;
@@ -70,12 +76,17 @@ export function LessonPlayer({
     const isFirst = !(current.id in firstAnswers);
     if (isFirst) setFirstAnswers((a) => ({ ...a, [current.id]: value }));
 
-    setFeedback({ correct, answer: correctAnswerText(current.data), explanation: null, loadingExplain: false });
+    setFeedback({
+      correct,
+      answer: correctAnswerText(current.data),
+      explanation: mode === "preview" && !correct ? (current.explanation ?? null) : null,
+      loadingExplain: false,
+    });
     if (!correct) {
       setHearts((h) => h - 1);
       setQueue((q) => [...q, queue[pos]]); // hỏi lại ở cuối
     }
-  }, [value, feedback, current, firstAnswers, queue, pos]);
+  }, [value, feedback, current, firstAnswers, queue, pos, mode]);
 
   const next = useCallback(() => {
     if (!feedback) return;
@@ -90,7 +101,7 @@ export function LessonPlayer({
 
   const explain = useCallback(async () => {
     if (!feedback || !value || !current) return;
-    if (mode === "trial") return;
+    if (mode !== "learn") return;
     setFeedback({ ...feedback, loadingExplain: true });
     const text = await explainAnswer(current.id, value);
     setFeedback((f) => f && { ...f, loadingExplain: false, explanation: text ?? "Chưa có giải thích cho câu này." });
@@ -108,13 +119,18 @@ export function LessonPlayer({
     return () => window.removeEventListener("keydown", onKey);
   }, [feedback, next, check]);
 
-  const exitHref = mode === "learn" ? "/learn" : "/";
+  const exitHref = exitHrefProp ?? (mode === "learn" ? "/learn" : "/");
 
   if (result) return <ResultScreen result={result} mode={mode} exitHref={exitHref} />;
   if (!current) return null;
 
   return (
     <div className="flex min-h-dvh flex-col">
+      {mode === "preview" && (
+        <p className="bg-muted px-4 py-2 text-center text-xs font-bold uppercase text-muted-foreground">
+          Xem trước · không lưu tiến độ, XP hay tim
+        </p>
+      )}
       <header className="mx-auto flex w-full max-w-2xl items-center gap-4 px-4 py-5">
         <Link href={exitHref} aria-label="Thoát bài học" className="text-muted-foreground hover:text-foreground">
           <X className="size-6" />
@@ -201,7 +217,7 @@ function ResultScreen({
   exitHref,
 }: {
   result: LessonResult | "out";
-  mode: "learn" | "trial";
+  mode: Mode;
   exitHref: string;
 }) {
   if (result === "out") {
@@ -213,7 +229,7 @@ function ResultScreen({
         <h1 className="text-2xl font-extrabold">Hết tim rồi!</h1>
         <p className="text-muted-foreground">Tim sẽ tự hồi theo thời gian. Nghỉ chút rồi quay lại nhé.</p>
         <Link href={exitHref} className={cn(buttonVariants({ size: "lg" }), "h-12 px-8 font-bold")}>
-          Về trang học
+          {mode === "preview" ? "Quay lại bài" : "Về trang học"}
         </Link>
       </main>
     );
@@ -233,7 +249,7 @@ function ResultScreen({
         <Stat
           label="Độ chính xác"
           value={`${accuracy}%`}
-          className={cn("border-success text-success", mode === "trial" && "col-span-2")}
+          className={cn("border-success text-success", mode !== "learn" && "col-span-2")}
         />
         {mode === "learn" && (
           <Stat label="Chuỗi ngày" value={`🔥 ${result.streak}`} className="col-span-2 border-orange-400 text-orange-500" />
@@ -248,7 +264,7 @@ function ResultScreen({
         </div>
       ) : (
         <Link href={exitHref} className={cn(buttonVariants({ size: "lg" }), "h-12 w-full font-bold")}>
-          Tiếp tục
+          {mode === "preview" ? "Quay lại bài" : "Tiếp tục"}
         </Link>
       )}
     </main>

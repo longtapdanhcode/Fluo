@@ -37,7 +37,8 @@ Lý do: Drizzle kết nối bằng role bỏ qua RLS, nên an toàn phụ thuộ
   **KHÔNG ĐƯỢC** import Next.js, React, Supabase hay `@/db`. Đây là phần sẽ dùng lại cho app mobile.
 - Mỗi dạng bài tập được định nghĩa một chỗ: schema Zod trong `types.ts` là chuẩn. Thêm dạng bài
   mới **BẮT BUỘC** cập nhật đủ: schema + `checkAnswer`/`correctAnswerText` + component trong
-  `components/lesson/` + nhãn tiếng Việt + schema sinh bài của AI trong `lib/ai.ts`.
+  `components/lesson/` + nhãn tiếng Việt + quy tắc dạng bài trong skill soạn nháp
+  `.claude/skills/soan-bai/SKILL.md`.
 - Dữ liệu `exercises.data` (jsonb) **BẮT BUỘC** được kiểm bằng schema Zod trước khi ghi vào DB.
 
 Lý do: logic thuần dễ test, dễ chuyển nền tảng, và một schema duy nhất tránh lệch giữa CMS, AI và player.
@@ -52,6 +53,8 @@ Lý do: logic thuần dễ test, dễ chuyển nền tảng, và một schema du
 - **KHÔNG ĐƯỢC** viết cứng nội dung bài học vào code; `scripts/seed.ts` chỉ chứa dữ liệu huy hiệu.
 - Câu do AI tạo **BẮT BUỘC** đi qua schema chặt, được đánh dấu `ai_generated`, và chỉ đến với học
   viên sau khi người duyệt xuất bản bài.
+- Soạn nháp bằng AI làm qua skill `/soan-bai` trong Claude Code: AI ghi file YAML như nội dung soạn
+  tay, người duyệt bằng diff. Việc soạn nội dung **NÊN** không phát sinh chi phí theo lượt.
 - Tính năng AI hướng tới học viên **BẮT BUỘC** có đường lùi khi không có API key hoặc AI lỗi (ví dụ
   dùng lời giải soạn sẵn), và **NÊN** có giới hạn hoặc cache để kiểm soát chi phí.
 
@@ -81,8 +84,9 @@ Lý do: chỉ có một người phát triển, nên chi phí duy trì quan tr�
 ## Ràng buộc kỹ thuật
 
 - **Stack cố định**: Next.js 16 (App Router, Cache Components bật), TypeScript strict, Tailwind v4 +
-  shadcn/ui (Base UI), Supabase (Auth + Postgres), Drizzle ORM, Zod, Claude API qua
-  `@anthropic-ai/sdk`. Đổi stack là thay đổi constitution.
+  shadcn/ui (Base UI), Supabase (Auth + Postgres + Storage), Drizzle ORM, Zod, Claude API qua
+  `@anthropic-ai/sdk` (chỉ cho AI phía học viên). Giọng đọc sinh trên máy bằng Kokoro (`kokoro-js`).
+  Đổi stack là thay đổi constitution.
 - **Next.js 16 khác bản cũ**: trước khi dùng API của Next **BẮT BUỘC** đọc hướng dẫn trong
   `node_modules/next/dist/docs/`. Dùng `proxy.ts` (không phải `middleware.ts`); `params`,
   `searchParams`, `cookies()` đều async; dữ liệu theo request phải nằm trong `<Suspense>` hoặc
@@ -93,7 +97,8 @@ Lý do: chỉ có một người phát triển, nên chi phí duy trì quan tr�
 - **Thời gian**: "ngày" cho streak và mục tiêu tính theo `Asia/Ho_Chi_Minh`.
 - **Giao diện**: chữ trên UI bằng tiếng Việt; nội dung học bằng tiếng Anh. Mọi màn hình **BẮT
   BUỘC** dùng được ở chiều rộng 375px, không cuộn ngang.
-- **AI**: model mặc định `claude-opus-5-5`, đổi qua biến môi trường `AI_MODEL` / `AI_EXPLAIN_MODEL`.
+- **AI**: AI phía học viên dùng model mặc định `claude-opus-5-5`, đổi qua biến môi trường
+  `AI_MODEL` / `AI_EXPLAIN_MODEL`. Soạn nháp nội dung dùng Claude Code, không gọi API.
 
 ## Quy trình và cổng chất lượng
 
@@ -121,4 +126,4 @@ Lý do: chỉ có một người phát triển, nên chi phí duy trì quan tr�
   PATCH khi chỉ làm rõ câu chữ.
 - Rà soát constitution khi kết thúc mỗi giai đoạn của lộ trình (MVP, thử nghiệm, chế độ Bé).
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-21 | **Last Amended**: 2026-11-22
+**Version**: 1.1.1 | **Ratified**: 2026-11-21 | **Last Amended**: 2026-11-23

@@ -59,8 +59,15 @@ export const courses = pgTable("courses", {
   level: cefrLevel("level").notNull().default("a1"),
   sortOrder: integer("sort_order").notNull().default(0),
   published: boolean("published").notNull().default(false),
+  /** Giọng Azure Speech khai báo trong course.yaml, dùng cho `npm run content:audio`. */
+  ttsVoice: text("tts_voice"),
 });
 
+/**
+ * Nội dung (unit, bài, câu, từ vựng) có bản gốc là file YAML trong content/ và được đồng bộ bằng
+ * `npm run content:import`. Mỗi mục có khóa ổn định lấy từ file; mục không còn trong file được gỡ
+ * bằng `archived_at` chứ không xóa, để giữ tiến độ học viên.
+ */
 export const units = pgTable(
   "units",
   {
@@ -71,8 +78,11 @@ export const units = pgTable(
     sortOrder: integer("sort_order").notNull(),
     title: text("title").notNull(),
     description: text("description"),
+    /** `id` trong unit.yaml; null = dữ liệu tạo trước quy trình nội dung dạng file. */
+    key: text("key"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
   },
-  (t) => [uniqueIndex("units_course_order_idx").on(t.courseId, t.sortOrder)],
+  (t) => [uniqueIndex("units_course_key_idx").on(t.courseId, t.key)],
 );
 
 export const lessons = pgTable(
@@ -86,8 +96,13 @@ export const lessons = pgTable(
     title: text("title").notNull(),
     xpReward: integer("xp_reward").notNull().default(10),
     published: boolean("published").notNull().default(false),
+    /** "<course-slug>/<lesson-id>", không đổi khi chuyển bài sang unit khác. */
+    contentKey: text("content_key").unique(),
+    /** Đường dẫn file nguồn, tương đối từ gốc repo. */
+    sourcePath: text("source_path"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
   },
-  (t) => [uniqueIndex("lessons_unit_order_idx").on(t.unitId, t.sortOrder)],
+  (t) => [index("lessons_unit_order_idx").on(t.unitId, t.sortOrder)],
 );
 
 export const exercises = pgTable(
@@ -105,9 +120,83 @@ export const exercises = pgTable(
     imageUrl: text("image_url"),
     explanation: text("explanation"),
     aiGenerated: boolean("ai_generated").notNull().default(false),
+    /** `id` của câu trong file bài. */
+    key: text("key"),
+    /** sha256(giọng + văn bản đọc) của file âm thanh hiện tại. */
+    audioHash: text("audio_hash"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
   },
-  (t) => [index("exercises_lesson_idx").on(t.lessonId, t.sortOrder)],
+  (t) => [
+    index("exercises_lesson_idx").on(t.lessonId, t.sortOrder),
+    uniqueIndex("exercises_lesson_key_idx").on(t.lessonId, t.key),
+  ],
 );
+
+/** Từ vựng giới thiệu ở từng unit; nền cho ôn tập ngắt quãng. */
+export const vocabulary = pgTable(
+  "vocabulary",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    unitId: uuid("unit_id")
+      .notNull()
+      .references(() => units.id, { onDelete: "cascade" }),
+    word: text("word").notNull(),
+    /** normalize(word), khóa đồng bộ trong khóa học. */
+    wordKey: text("word_key").notNull(),
+    meaningVi: text("meaning_vi").notNull(),
+    example: text("example"),
+    forms: text("forms").array().notNull().default(sql`'{}'::text[]`),
+    sortOrder: integer("sort_order").notNull(),
+    audioUrl: text("audio_url"),
+    audioHash: text("audio_hash"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("vocabulary_course_word_idx").on(t.courseId, t.wordKey)],
+);
+
+/** Câu hỏi nào dùng từ vựng nào. */
+export const exerciseVocabulary = pgTable(
+  "exercise_vocabulary",
+  {
+    exerciseId: uuid("exercise_id")
+      .notNull()
+      .references(() => exercises.id, { onDelete: "cascade" }),
+    vocabularyId: uuid("vocabulary_id")
+      .notNull()
+      .references(() => vocabulary.id, { onDelete: "cascade" }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.exerciseId, t.vocabularyId] }),
+    index("exercise_vocabulary_vocab_idx").on(t.vocabularyId),
+  ],
+);
+
+export type ContentReportOutcome = "imported" | "no_changes" | "blocked" | "cancelled" | "dry_run";
+
+/** Kết quả kiểm tra mỗi lần chạy `content:import`, hiện ở /admin. Chỉ giữ 20 bản mới nhất. */
+export const contentReports = pgTable("content_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  outcome: text("outcome").$type<ContentReportOutcome>().notNull(),
+  errors: jsonb("errors").$type<ContentReportIssue[]>().notNull().default([]),
+  warnings: jsonb("warnings").$type<ContentReportIssue[]>().notNull().default([]),
+  summary: jsonb("summary").$type<Record<string, unknown>>().notNull().default({}),
+  gitCommit: text("git_commit"),
+});
+
+/** Bản lưu của ContentIssue (src/lib/content/types.ts); khai báo lại để schema không phụ thuộc lib. */
+export type ContentReportIssue = {
+  severity: "error" | "warning";
+  code: string;
+  file: string;
+  line?: number;
+  exerciseKey?: string;
+  exerciseIndex?: number;
+  message: string;
+};
 
 export const lessonCompletions = pgTable(
   "lesson_completions",
@@ -153,3 +242,5 @@ export type Course = typeof courses.$inferSelect;
 export type Unit = typeof units.$inferSelect;
 export type Lesson = typeof lessons.$inferSelect;
 export type Exercise = typeof exercises.$inferSelect;
+export type Vocabulary = typeof vocabulary.$inferSelect;
+export type ContentReport = typeof contentReports.$inferSelect;

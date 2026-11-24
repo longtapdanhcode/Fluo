@@ -4,8 +4,8 @@ Các bước chứng minh tính năng chạy đúng từ đầu tới cuối. Đ
 
 ## Chuẩn bị
 
-1. `.env.local` có `DATABASE_URL`, `ANTHROPIC_API_KEY`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SUPABASE_SECRET_KEY`.
-2. Tạo resource Azure Speech gói F0 trên portal.azure.com. Lấy key và region.
+1. `.env.local` có `DATABASE_URL` và `SUPABASE_SECRET_KEY` (Supabase → Project Settings → API Keys). Không cần khóa AI hay TTS.
+2. Có Claude Code mở trong repo (để soạn nháp ở bước 6).
 3. Cài đặt và áp migration:
 
 ```bash
@@ -65,19 +65,29 @@ Kỳ vọng: 2 lỗi (`unknown_word`, `missing_explanation`) có file, dòng và
 
 ## 6. AI soạn nháp (US4, SC-005)
 
-```bash
-npm run content:draft -- --course a1-starter --unit greetings --topic "Chào buổi sáng ở văn phòng" --words "good morning, how, fine, thanks"
+Trong Claude Code:
+
+```text
+/soan-bai a1-starter greetings "Chào buổi sáng ở văn phòng" good morning, how, fine, thanks
 ```
 
-Kỳ vọng: in đường dẫn file mới và kết quả kiểm tra. Dùng `git diff` để thấy file bài mới và một dòng thêm trong `unit.yaml`. Sửa nếu có lỗi, rồi chạy `content:import`. Trong `/admin`, bài mới chưa xuất bản và các câu mang cờ AI. Xem trước, rồi bật xuất bản.
+Kỳ vọng: Claude Code báo đường dẫn file mới, các từ đã thêm vào vocabulary, và `content:check` sạch. Dùng `git diff` để thấy file bài mới và một dòng thêm trong `unit.yaml`. Sửa nếu có lỗi, rồi chạy `content:import`. Trong `/admin`, bài mới chưa xuất bản và các câu mang cờ AI. Xem trước, rồi bật xuất bản.
 
 ## 7. Âm thanh (US5, SC-006)
+
+Nghe thử giọng trước (không cần khóa):
+
+```bash
+npm run content:audio -- --sample "Nice to meet you." --voice af_heart
+```
+
+Rồi sinh cho cả khóa:
 
 ```bash
 npm run content:audio
 ```
 
-Kỳ vọng: sinh đủ âm thanh cho các câu nghe và từ vựng. Trong `/admin`, cột "có âm thanh" bằng số câu nghe. Học bài có câu nghe thì nghe giọng Azure. Chạy lại lệnh thì in `0 đã sinh`.
+Kỳ vọng: lần đầu tải mô hình Kokoro (vài phút), rồi sinh đủ âm thanh cho các câu nghe và từ vựng. Trong `/admin`, cột "có âm thanh" bằng số câu nghe. Học bài có câu nghe thì nghe giọng Kokoro. Chạy lại lệnh thì in `0 đã sinh`.
 
 ## 8. Trang quản trị (US6) và cổng chất lượng
 

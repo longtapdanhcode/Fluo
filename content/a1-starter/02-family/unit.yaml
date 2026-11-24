@@ -1,0 +1,33 @@
+id: family
+title: Gia đình
+description: Nói về người thân
+lessons: [members, how-many]
+
+vocabulary:
+  - word: mother
+    meaning: mẹ
+  - word: father
+    meaning: bố
+    example: This is my father.
+  - word: sister
+    meaning: chị gái, em gái
+    example: She is my sister.
+  - word: brother
+    meaning: anh trai, em trai
+  - word: grandmother
+    meaning: bà
+  - word: have
+    meaning: có
+    example: I have two brothers.
+    forms: [has, had]
+  - word: two
+    meaning: hai
+  - word: four
+    meaning: bốn
+  - word: people
+    meaning: người (số nhiều)
+  - word: family
+    meaning: gia đình
+    example: I love my family.
+  - word: love
+    meaning: yêu, thương

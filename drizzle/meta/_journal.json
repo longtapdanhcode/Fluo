@@ -15,6 +15,20 @@
       "when": 1795275084817,
       "tag": "0001_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795358575894,
+      "tag": "0002_wandering_nehzno",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795358580319,
+      "tag": "0003_content_pipeline_rls",
+      "breakpoints": true
     }
   ]
 }

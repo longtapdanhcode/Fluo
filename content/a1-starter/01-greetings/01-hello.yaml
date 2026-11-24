@@ -1,0 +1,56 @@
+id: hello
+title: Xin chào!
+published: true
+exercises:
+  - id: hello-meaning
+    prompt: Chọn nghĩa đúng của “Hello”
+    explanation: “Hello” là lời chào phổ biến nhất, dùng được mọi lúc.
+    data:
+      type: multiple_choice
+      choices: [{ text: Xin chào }, { text: Tạm biệt }, { text: Cảm ơn }]
+      answerIndex: 0
+
+  - id: good-morning-listen
+    prompt: Nghe và chọn nghĩa đúng
+    explanation: “Good morning” dùng để chào vào buổi sáng.
+    data:
+      type: listen_select
+      audioText: Good morning
+      choices: [Chúc ngủ ngon, Chào buổi sáng, Chào buổi tối]
+      answerIndex: 1
+
+  - id: greetings-match
+    prompt: Ghép từ với nghĩa
+    explanation: Bốn câu giao tiếp cơ bản nhất khi gặp và chia tay.
+    data:
+      type: match_pairs
+      pairs:
+        - { left: Hello, right: Xin chào }
+        - { left: Goodbye, right: Tạm biệt }
+        - { left: Thank you, right: Cảm ơn }
+        - { left: Sorry, right: Xin lỗi }
+
+  - id: nice-to-meet-you
+    prompt: "Xếp thành câu: “Rất vui được gặp bạn”"
+    explanation: "Câu cố định: “Nice to meet you”."
+    data:
+      type: word_bank
+      answer: [Nice, to, meet, you]
+      distractors: [me, good]
+
+  - id: good-night-blank
+    prompt: Điền từ còn thiếu
+    explanation: “Good night” là lời chào khi đi ngủ hoặc chia tay buổi tối.
+    data:
+      type: fill_blank
+      sentence: Good ___, see you tomorrow!
+      answer: night
+      choices: [night, morning, hello]
+
+  - id: how-are-you-type
+    prompt: Nghe và gõ lại
+    explanation: “How are you?” nghĩa là “Bạn khỏe không?”.
+    data:
+      type: listen_type
+      audioText: How are you?
+      answer: How are you

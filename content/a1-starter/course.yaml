@@ -1,0 +1,16 @@
+# Khóa A1 mẫu. Bản gốc nội dung: sửa file ở đây rồi chạy `npm run content:check` và `npm run content:import`.
+# Định dạng: specs/001-lesson-content-pipeline/contracts/content-format.md
+id: a1-starter
+title: "Tiếng Anh A1: Khởi đầu"
+description: Những câu giao tiếp đầu tiên cho người mới bắt đầu
+level: a1
+audience: adult
+published: true
+ttsVoice: af_heart
+units: [greetings, family]
+
+# Từ chức năng dùng chung, không cần khai báo trong từ vựng của unit.
+commonWords: [a, an, the, i, you, he, she, it, we, they, me, my, your, is, am, are, to, and, of, in, on, from, this, that, there]
+
+# Tên riêng được phép xuất hiện trong câu.
+names: [Lan, Anna, Minh, Vietnam]

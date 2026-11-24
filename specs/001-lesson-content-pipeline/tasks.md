@@ -30,13 +30,13 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 **Purpose**: Cài phụ thuộc, test runner, lệnh npm
 
-- [ ] T001 Cài `yaml` (dependency) và `vitest` (devDependency), cập nhật `package.json` và `package-lock.json` bằng `npm install yaml && npm install -D vitest`
-- [ ] T002 [P] Tạo `vitest.config.ts` ở gốc repo: alias `@` → `src`, `include: ["src/**/*.test.ts"]`, môi trường `node`
-- [ ] T003 Thêm script vào `package.json`:
+- [x] T001 Cài `yaml` (dependency) và `vitest` 4.1 (devDependency; Vitest 5 đòi @types/node ≥ 22), cập nhật `package.json` và `package-lock.json` bằng `npm install yaml && npm install -D vitest`
+- [x] T002 [P] Tạo `vitest.config.mts` ở gốc repo (đuôi .mts vì package không phải ESM): alias `@` → `src`, `include: ["src/**/*.test.ts"]`, môi trường `node`
+- [x] T003 Thêm script vào `package.json`:
   - `"test": "vitest run"`
   - `"content:check": "tsx --conditions=react-server scripts/content-check.ts"`
   - `"content:import"`, `"content:draft"`, `"content:audio"` tương tự, trỏ tới `scripts/content-import.ts`, `scripts/content-draft.ts`, `scripts/content-audio.ts`
-- [ ] T004 [P] Thêm `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SUPABASE_SECRET_KEY` (kèm ghi chú "chỉ dùng trong script, không bao giờ NEXT_PUBLIC_") vào `.env.example`, theo bảng "Biến môi trường mới" trong `contracts/cli.md`
+- [x] T004 [P] Thêm `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SUPABASE_SECRET_KEY` (kèm ghi chú "chỉ dùng trong script, không bao giờ NEXT_PUBLIC_") vào `.env.example`, theo bảng "Biến môi trường mới" trong `contracts/cli.md`
 
 ---
 
@@ -55,7 +55,7 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Database (một migration cho cả tính năng)
 
-- [ ] T005 Sửa `src/db/schema.ts` theo `data-model.md`:
+- [x] T005 Sửa `src/db/schema.ts` theo `data-model.md`:
   - **Cột mới:**
     - `courses.ttsVoice` (data-model.md `courses.tts_voice`)
     - `units.key`, `units.archivedAt` (data-model.md `units.key`, `units.archived_at`)
@@ -70,31 +70,31 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
     - `exerciseVocabulary`: data-model.md `exercise_vocabulary.*`, pk ghép, index trên `vocabulary_id`.
     - `contentReports`: data-model.md `content_reports.*`, `outcome` là text với 5 giá trị đã liệt kê.
   - **Kiểu xuất:** `Vocabulary`, `ContentReport`.
-- [ ] T006 Chạy `npm run db:generate` để sinh migration trong `drizzle/`. **Không sửa tay** file sinh ra.
-- [ ] T007 Tạo custom migration bằng `npx drizzle-kit generate --custom --name=content_pipeline_rls`. Trong đó `ALTER TABLE … ENABLE ROW LEVEL SECURITY` cho `vocabulary`, `exercise_vocabulary`, `content_reports` (constitution, Nguyên tắc II; tham khảo `drizzle/0001_rls.sql`).
-- [ ] T008 Chạy `npm run db:migrate` vào DB của dự án. Sau đó `npm run db:check` báo kết nối được và app vẫn chạy (`/learn` vẫn hiện khóa cũ).
+- [x] T006 Chạy `npm run db:generate` để sinh migration trong `drizzle/`. **Không sửa tay** file sinh ra.
+- [x] T007 Tạo custom migration bằng `npx drizzle-kit generate --custom --name=content_pipeline_rls`. Trong đó `ALTER TABLE … ENABLE ROW LEVEL SECURITY` cho `vocabulary`, `exercise_vocabulary`, `content_reports` (constitution, Nguyên tắc II; tham khảo `drizzle/0001_rls.sql`).
+- [x] T008 Chạy `npm run db:migrate` vào DB của dự án. Sau đó `npm run db:check` báo kết nối được và app vẫn chạy (`/learn` vẫn hiện khóa cũ).
 
 ### Schema file và parse (thuần)
 
-- [ ] T009 [P] Tạo `src/lib/content/types.ts`: kiểu `ContentIssue` (đủ các `code` trong data-model.md "Kiểu thuần"), `SourceFile { path: string; text: string }`, `ContentTree`, `CourseContent`, `UnitContent`, `LessonContent`, `ExerciseContent` (mỗi node kèm `file` và `line`)
-- [ ] T010 [P] Tạo `src/lib/content/schema.ts`: Zod cho `course.yaml`, `unit.yaml` và file bài theo `contracts/content-format.md`.
+- [x] T009 [P] Tạo `src/lib/content/types.ts`: kiểu `ContentIssue` (đủ các `code` trong data-model.md "Kiểu thuần"), `SourceFile { path: string; text: string }`, `ContentTree`, `CourseContent`, `UnitContent`, `LessonContent`, `ExerciseContent` (mỗi node kèm `file` và `line`)
+- [x] T010 [P] Tạo `src/lib/content/schema.ts`: Zod cho `course.yaml`, `unit.yaml` và file bài theo `contracts/content-format.md`.
   - Field `data` của câu dùng lại `exerciseData` từ `src/lib/exercises/types.ts`.
   - `id` của khóa, unit, bài, câu khớp `^[a-z0-9]+(-[a-z0-9]+)*$`.
   - `explanation` là chuỗi tùy chọn (thiếu sẽ do validate báo `missing_explanation`, không phải lỗi schema).
   - `exceptions[].reason` là chuỗi tùy chọn (validate báo `exception_without_reason`).
   - `choicesLang` nhận `en | vi`; `published` và `aiGenerated` mặc định `false`; `xp` mặc định 10.
-- [ ] T011 [P] Viết test `src/lib/content/parse.test.ts` cho `parseContent(files: SourceFile[])`:
+- [x] T011 [P] Viết test `src/lib/content/parse.test.ts` cho `parseContent(files: SourceFile[])`:
   - File YAML sai cú pháp → `yaml_syntax` có dòng.
   - Lỗi Zod ở `exercises[2].data.answerIndex` → `schema`, kèm dòng của node đó, `exerciseIndex: 3` và `exerciseKey`.
   - Thiếu `course.yaml` hoặc `unit.yaml`, hoặc file bài không được liệt kê trong `unit.yaml > lessons` → `missing_manifest`.
   - Bộ file hợp lệ → `ContentTree` đúng thứ tự unit, bài, câu.
-- [ ] T012 Cài `src/lib/content/parse.ts`:
+- [x] T012 Cài `src/lib/content/parse.ts`:
   - `parseContent(files)` dùng `parseDocument` và `LineCounter` của `yaml` (research R1), đổi đường dẫn lỗi Zod ra số dòng.
   - Nhóm file theo thư mục khóa và unit, sắp thứ tự theo `course.units` và `unit.lessons`.
   - Trả về `{ tree, issues }` và không dừng ở lỗi đầu tiên (FR-008).
   - Làm cho T011 qua.
-- [ ] T013 [P] Tạo `scripts/lib/load-files.ts`: đọc đệ quy mọi `*.yaml` trong thư mục nội dung (mặc định `content/`) thành `SourceFile[]`, đường dẫn tương đối từ gốc repo
-- [ ] T014 [P] Tạo `src/lib/content/report.ts`: `formatIssues(issues)` in theo nhóm file, mỗi dòng dạng `file:dòng  [mã]  câu #n (id)  mô tả`; `formatSummary(tree, issues)` in dòng cuối theo `contracts/cli.md` (`✓ Không có lỗi · …` hoặc `✗ N lỗi, N cảnh báo`)
+- [x] T013 [P] Tạo `scripts/lib/load-files.ts`: đọc đệ quy mọi `*.yaml` trong thư mục nội dung (mặc định `content/`) thành `SourceFile[]`, đường dẫn tương đối từ gốc repo
+- [x] T014 [P] Tạo `src/lib/content/report.ts`: `formatIssues(issues)` in theo nhóm file, mỗi dòng dạng `file:dòng  [mã]  câu #n (id)  mô tả`; `formatSummary(tree, issues)` in dòng cuối theo `contracts/cli.md` (`✓ Không có lỗi · …` hoặc `✗ N lỗi, N cảnh báo`)
 
 **Checkpoint**: DB đã có cột và bảng mới; parse được file YAML ra cây kèm vị trí.
 
@@ -108,7 +108,7 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Tests cho US1
 
-- [ ] T015 [P] [US1] Viết test `src/lib/content/sync.test.ts` cho `planSync(tree, snapshot)`:
+- [x] T015 [P] [US1] Viết test `src/lib/content/sync.test.ts` cho `planSync(tree, snapshot)`:
   - DB trống → toàn bộ là thêm mới; `published` lấy từ file khi tạo lần đầu (FR-015).
   - Chạy lại với snapshot khớp file → kế hoạch rỗng.
   - Sửa câu → 1 cập nhật.
@@ -121,12 +121,12 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Implementation cho US1
 
-- [ ] T016 [P] [US1] Tạo `content/a1-starter/course.yaml` và `content/a1-starter/01-greetings/`, `content/a1-starter/02-family/` (mỗi unit một `unit.yaml` và 2 file bài).
+- [x] T016 [P] [US1] Tạo `content/a1-starter/course.yaml` và `content/a1-starter/01-greetings/`, `content/a1-starter/02-family/` (mỗi unit một `unit.yaml` và 2 file bài).
   - Chuyển nguyên nội dung 4 bài từ `scripts/seed.ts` sang định dạng `contracts/content-format.md`.
   - Đặt `id` ổn định cho mọi bài và câu; mỗi câu có `explanation`.
   - Đặt `ttsVoice: en-US-AvaMultilingualNeural`, `published: true`.
   - Ghi `vocabulary` đủ cho từng unit, cùng `commonWords` và `names` ở `course.yaml`, để nội dung qua được quy tắc từ chưa học của US2.
-- [ ] T017 [US1] Cài `src/lib/content/sync.ts`:
+- [x] T017 [US1] Cài `src/lib/content/sync.ts`:
   - Kiểu `DbSnapshot` (khóa, unit, bài, câu hiện có, kèm `key`/`content_key`/`archived_at`/`published`/`audio_hash`) và `SyncPlan` (thêm / sửa / gỡ / khôi phục theo loại, tóm tắt số lượng).
   - Hàm `planSync(tree, snapshot)` nhận diện theo data-model.md `courses.slug`, `units.key`, `lessons.content_key`, `exercises.key`; `sort_order` lấy theo vị trí (bắt đầu từ 1).
   - Điều kiện "đã đổi" theo từng loại:
@@ -136,20 +136,20 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
     - Câu: `type`, `prompt`, `data`, `explanation`, `image`, `aiGenerated` (data-model.md `exercises.ai_generated`), `sortOrder`.
   - `published` chỉ đặt khi tạo mới, không bao giờ cập nhật theo file (data-model.md `courses.published`; với bài, theo FR-015).
   - Làm cho T015 qua.
-- [ ] T018 [P] [US1] Tạo `scripts/lib/db-snapshot.ts`: `loadSnapshot(db, courseSlugs)` đọc khóa, unit, bài, câu (kể cả mục đã gỡ) thành `DbSnapshot`
-- [ ] T019 [US1] Tạo `scripts/lib/apply-sync.ts`:
+- [x] T018 [P] [US1] Tạo `scripts/lib/db-snapshot.ts`: `loadSnapshot(db, courseSlugs)` đọc khóa, unit, bài, câu (kể cả mục đã gỡ) thành `DbSnapshot`
+- [x] T019 [US1] Tạo `scripts/lib/apply-sync.ts`:
   - `applySync(db, plan)` chạy mọi thay đổi trong một `db.transaction` (FR-012).
   - Gỡ bằng `archived_at = now()`, khôi phục bằng `archived_at = null`. **Không** xóa dòng nào và không đụng `lesson_completions` (FR-013, FR-014).
   - Ghi `lessons.source_path` và `courses.tts_voice` theo data-model.md.
   - `replaceLegacyCourse(db, slug)` xóa khóa cũ theo cascade.
-- [ ] T020 [US1] Tạo `scripts/content-import.ts` theo các bước 1–6 của `contracts/cli.md`:
+- [x] T020 [US1] Tạo `scripts/content-import.ts` theo các bước 1–6 của `contracts/cli.md`:
   - Có cờ `--dry-run`, `--yes`, `--replace-legacy`.
   - In `Đích: <host>` lấy từ `DATABASE_URL` (không in mật khẩu), tóm tắt và danh sách bài bị gỡ.
   - Hỏi `y/N` bằng `node:readline/promises`. `--replace-legacy` luôn hỏi riêng.
   - Thoát mã 1 khi có lỗi kiểm tra hoặc lỗi ghi.
-- [ ] T021 [US1] Sửa `src/lib/content.ts`: `getCoursePath`, `isLessonUnlocked`, `getTrialLessonId` chỉ lấy unit và bài có `archivedAt IS NULL`; `getLessonWithExercises` chỉ lấy câu có `archivedAt IS NULL` (data-model.md, mục "Quy tắc trạng thái")
-- [ ] T022 [US1] Sửa `src/app/actions/lesson.ts`: khi chấm lại bài ở server, bỏ qua câu có `archivedAt` khác null, để số câu khớp những gì học viên thấy
-- [ ] T023 [US1] Thu gọn `scripts/seed.ts` chỉ còn tạo huy hiệu (bỏ toàn bộ nội dung bài và đoạn xóa khóa `a1-starter`), sửa chú thích đầu file. Sửa luôn hai thông báo đang bảo chạy `npm run db:seed` để có bài thành `npm run content:import`: `src/app/try/page.tsx` (dòng 20) và `src/app/learn/page.tsx` (dòng 84)
+- [x] T021 [US1] Sửa `src/lib/content.ts`: `getCoursePath`, `isLessonUnlocked`, `getTrialLessonId` chỉ lấy unit và bài có `archivedAt IS NULL`; `getLessonWithExercises` chỉ lấy câu có `archivedAt IS NULL` (data-model.md, mục "Quy tắc trạng thái")
+- [x] T022 [US1] Sửa `src/app/actions/lesson.ts`: khi chấm lại bài ở server, bỏ qua câu có `archivedAt` khác null, để số câu khớp những gì học viên thấy
+- [x] T023 [US1] Thu gọn `scripts/seed.ts` chỉ còn tạo huy hiệu (bỏ toàn bộ nội dung bài và đoạn xóa khóa `a1-starter`), sửa chú thích đầu file. Sửa luôn hai thông báo đang bảo chạy `npm run db:seed` để có bài thành `npm run content:import`: `src/app/try/page.tsx` (dòng 20) và `src/app/learn/page.tsx` (dòng 84)
 - [ ] T024 [US1] Kiểm chứng theo quickstart bước 3–4:
   - Chạy `npm run content:import -- --replace-legacy`, rồi chạy lại để thấy "Không có thay đổi".
   - Học xong một bài, sửa, đổi tên, đảo thứ tự rồi import → tiến độ còn.
@@ -166,27 +166,27 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Tests cho US2
 
-- [ ] T025 [P] [US2] Tạo fixture trong `tests/fixtures/content/`. Mỗi thư mục là một khóa nhỏ hoàn chỉnh chứa đúng một loại lỗi:
+- [x] T025 [P] [US2] Tạo fixture trong `tests/fixtures/content/`. Mỗi thư mục là một khóa nhỏ hoàn chỉnh chứa đúng một loại lỗi:
   - `clean`, `unknown-word`, `exception-no-reason`, `duplicate-exercise`
   - `ambiguous-mc`, `ambiguous-word-bank`, `ambiguous-fill-blank`, `ambiguous-match-pairs`
   - `missing-explanation`, `duplicate-id`, `duplicate-vocabulary`
   - `acceptable-warning` (chỉ có cảnh báo)
-- [ ] T026 [P] [US2] Viết test `src/lib/content/words.test.ts`:
+- [x] T026 [P] [US2] Viết test `src/lib/content/words.test.ts`:
   - `englishTexts(exercise)` lấy đúng trường theo bảng R7 trong research.md, kể cả đoạn trong “…” của `prompt` và `choicesLang` tự nhận hoặc khai báo.
   - `tokenize` bỏ dấu câu và số.
   - `candidates()` xử lý được `i'm`, `don't`, `'s`, `-s/-es/-ies`, `-ing` (`making`, `running`), `-ed` (`studied`, `stopped`).
   - Cụm từ "good morning" khớp chuỗi con; `forms` khớp dạng bất quy tắc.
-- [ ] T027 [P] [US2] Viết test `src/lib/content/validate.test.ts`: đọc từng fixture của T025 qua `parseContent` + `validateContent`, kiểm đúng `code`, `severity`, `file`, `line`, `exerciseKey`. Fixture `clean` không có issue nào. Fixture nhiều lỗi liệt kê đủ trong một lần chạy.
+- [x] T027 [P] [US2] Viết test `src/lib/content/validate.test.ts`: đọc từng fixture của T025 qua `parseContent` + `validateContent`, kiểm đúng `code`, `severity`, `file`, `line`, `exerciseKey`. Fixture `clean` không có issue nào. Fixture nhiều lỗi liệt kê đủ trong một lần chạy.
 
 ### Implementation cho US2
 
-- [ ] T028 [US2] Cài `src/lib/content/words.ts`:
+- [x] T028 [US2] Cài `src/lib/content/words.ts`:
   - `englishTexts(exercise)` và `tokenize(text)` (dùng lại `normalize` của `src/lib/exercises/check.ts`).
   - `candidates(token)`.
   - `buildKnownWords(course, uptoUnitIndex)` trả tập từ đã học, gồm từ của unit đó và các unit trước, từ thành phần của cụm, `forms`, `commonWords`, `names`.
   - `findUnknownWords(exercise, known)` trừ các từ ngoại lệ của câu.
   - Theo research R7. Làm cho T026 qua.
-- [ ] T029 [US2] Cài `src/lib/content/validate.ts`: `validateContent(tree)` trả `ContentIssue[]` cho:
+- [x] T029 [US2] Cài `src/lib/content/validate.ts`: `validateContent(tree)` trả `ContentIssue[]` cho:
   - `unknown_word`
   - `exception_without_reason`
   - `duplicate_exercise` (theo khóa so sánh R8, báo cả hai vị trí)
@@ -197,13 +197,13 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
   - cảnh báo `acceptable_duplicates_answer`
 
   Thêm hàm `countExceptions(tree)` (FR-008a). Làm cho T027 qua.
-- [ ] T030 [US2] Tạo `scripts/content-check.ts`: đọc file (T013) → `parseContent` → `validateContent` → in bằng `report.ts`, kèm số từ ngoại lệ. Có cờ `--dir`. Thoát mã 1 nếu có lỗi. **Không** import `@/db`.
-- [ ] T031 [US2] Sửa `scripts/content-import.ts`: chạy `validateContent` trước `planSync`, có lỗi thì in và dừng (sau khi lưu báo cáo, xem T050)
-- [ ] T050 [US2] Ghi báo cáo kiểm tra:
+- [x] T030 [US2] Tạo `scripts/content-check.ts`: đọc file (T013) → `parseContent` → `validateContent` → in bằng `report.ts`, kèm số từ ngoại lệ. Có cờ `--dir`. Thoát mã 1 nếu có lỗi. **Không** import `@/db`.
+- [x] T031 [US2] Sửa `scripts/content-import.ts`: chạy `validateContent` trước `planSync`, có lỗi thì in và dừng (sau khi lưu báo cáo, xem T050)
+- [x] T050 [US2] Ghi báo cáo kiểm tra:
   - Thêm `saveReport(db, { outcome, errors, warnings, summary, gitCommit })` vào `scripts/lib/apply-sync.ts`. Hàm này ghi data-model.md `content_reports.*` (giá trị của data-model.md `content_reports.outcome` như đã liệt kê) **ngoài** transaction nội dung và xóa bản cũ, chỉ giữ 20 bản (FR-010).
   - Gọi hàm ở mọi nhánh kết thúc của `scripts/content-import.ts`: `blocked`, `no_changes`, `dry_run`, `cancelled`, `imported`.
   - `gitCommit` lấy từ `git rev-parse --short HEAD`, thêm `-dirty` nếu `git status --porcelain` có thay đổi.
-- [ ] T032 [US2] Kiểm chứng: chạy `npm test` và `npm run content:check` (nội dung mẫu sạch, dưới 10 giây, SC-007), rồi làm quickstart bước 5
+- [x] T032 [US2] Kiểm chứng: chạy `npm test` và `npm run content:check` (nội dung mẫu sạch, dưới 10 giây, SC-007), rồi làm quickstart bước 5
 
 **Checkpoint**: P1 hoàn tất. Nội dung chỉ vào DB khi sạch lỗi.
 
@@ -217,21 +217,21 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Tests cho US3
 
-- [ ] T033 [P] [US3] Bổ sung `src/lib/content/sync.test.ts`:
+- [x] T033 [P] [US3] Bổ sung `src/lib/content/sync.test.ts`:
   - Từ vựng mới → thêm; sửa `meaning` → cập nhật cùng dòng; xóa khỏi file → gỡ.
   - `linkWords(exercise, vocabIndex)` trả đúng các từ của câu "Nice to meet you." (`nice`, `meet`, …); từ ngoại lệ không được nối.
   - Thêm từ "nice" vào `unit.yaml` mà không sửa câu nào → câu cũ chứa "nice" vẫn được nối với từ mới.
 
 ### Implementation cho US3
 
-- [ ] T034 [US3] Mở rộng `src/lib/content/sync.ts`:
+- [x] T034 [US3] Mở rộng `src/lib/content/sync.ts`:
   - `planSync` tính thay đổi cho từ vựng, nhận diện theo data-model.md `vocabulary.word_key` trong phạm vi data-model.md `vocabulary.course_id`, ghi `vocabulary.meaning_vi`, `vocabulary.example`, `vocabulary.forms`, `vocabulary.sort_order`, `vocabulary.unit_id`.
   - Từ không còn trong file thì đặt data-model.md `vocabulary.archived_at`; thêm lại thì xóa giá trị đó.
   - Thêm `linkWords` dùng `words.ts`. Mỗi lần import có thay đổi, tính lại liên kết cho **mọi câu chưa gỡ của khóa**, không chỉ câu đã sửa, để từ mới thêm được nối với câu cũ. So với liên kết hiện có; khác thì đưa vào kế hoạch.
   - Làm cho T033 qua.
-- [ ] T035 [US3] Mở rộng `scripts/lib/db-snapshot.ts` (đọc `vocabulary` và `exercise_vocabulary`) và `scripts/lib/apply-sync.ts`: ghi từ vựng; mỗi câu có liên kết khác so với DB thì xóa rồi chèn lại liên kết trong `exercise_vocabulary` (data-model.md `exercise_vocabulary.*`), trong cùng transaction
-- [ ] T036 [P] [US3] Thêm `getExerciseVocabulary(exerciseId)` và `getVocabularyExercises(vocabularyId)` vào `src/lib/content.ts` (FR-020), dùng index của data-model.md `exercise_vocabulary.vocabulary_id`
-- [ ] T037 [US3] Kiểm chứng: import lại khóa mẫu; tóm tắt có dòng từ vựng; `db:studio` cho thấy liên kết đúng; chạy lại import → không có thay đổi
+- [x] T035 [US3] Mở rộng `scripts/lib/db-snapshot.ts` (đọc `vocabulary` và `exercise_vocabulary`) và `scripts/lib/apply-sync.ts`: ghi từ vựng; mỗi câu có liên kết khác so với DB thì xóa rồi chèn lại liên kết trong `exercise_vocabulary` (data-model.md `exercise_vocabulary.*`), trong cùng transaction
+- [x] T036 [P] [US3] Thêm `getExerciseVocabulary(exerciseId)` và `getVocabularyExercises(vocabularyId)` vào `src/lib/content.ts` (FR-020), dùng index của data-model.md `exercise_vocabulary.vocabulary_id`
+- [x] T037 [US3] Kiểm chứng: import lại khóa mẫu; tóm tắt có dòng từ vựng; `db:studio` cho thấy liên kết đúng; chạy lại import → không có thay đổi
 
 **Checkpoint**: Có dữ liệu từ vựng làm nền cho ôn tập ngắt quãng.
 
@@ -239,7 +239,7 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ## Phase 6: User Story 5 · Sinh âm thanh một lần (Priority: P2)
 
-**Goal**: `content:audio` sinh mp3 bằng Azure cho câu nghe và từ vựng, upload lên Storage, điền `audio_url`; chạy lại không sinh trùng.
+**Goal**: `content:audio` sinh mp3 bằng Kokoro (chạy trên máy, từ 2026-11-23; ban đầu là Azure) cho câu nghe và từ vựng, upload lên Storage, điền `audio_url`; chạy lại không sinh trùng.
 
 **Independent Test**: quickstart bước 7.
 
@@ -247,41 +247,41 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Tests cho US5
 
-- [ ] T038 [P] [US5] Viết test `src/lib/content/audio.test.ts`:
+- [x] T038 [P] [US5] Viết test `src/lib/content/audio.test.ts`:
   - `audioText(exercise)` trả `data.audioText` cho `listen_select`/`listen_type`, null cho dạng khác.
   - `audioHash(voice, text)` ổn định, đổi khi giọng hoặc văn bản đổi.
   - `planSync` đặt `audio_url = null` khi văn bản đọc hoặc giọng thay đổi, giữ nguyên khi không đổi (FR-017).
 
 ### Implementation cho US5
 
-- [ ] T039 [US5] Cài `src/lib/content/audio.ts` (`audioText`, `audioHash` bằng `node:crypto` sha256 theo research R4; có thể dùng `crypto.subtle` nếu muốn giữ thuần cho mobile). Sửa `sync.ts` để vô hiệu âm thanh cũ theo data-model.md `exercises.audio_hash`, `vocabulary.audio_hash`. Làm cho T038 qua.
-- [ ] T040 [P] [US5] Tạo `scripts/lib/azure-tts.ts`:
+- [x] T039 [US5] Cài `src/lib/content/audio.ts` (`audioText`, `audioHash` bằng `node:crypto` sha256 theo research R4; có thể dùng `crypto.subtle` nếu muốn giữ thuần cho mobile). Sửa `sync.ts` để vô hiệu âm thanh cũ theo data-model.md `exercises.audio_hash`, `vocabulary.audio_hash`. Làm cho T038 qua.
+- [x] T040 [P] [US5] *(Đã thay bằng T065.)* Tạo `scripts/lib/azure-tts.ts`:
   - `synthesize({ text, voice })` gọi REST theo research R3 bằng `fetch`, với SSML `xml:lang="en-US"` và header `X-Microsoft-OutputFormat: audio-24khz-48kbitrate-mono-mp3`.
   - Escape ký tự XML trong text.
   - Gặp 429 thì chờ `Retry-After` rồi thử lại tối đa 3 lần; lỗi khác ném `Error` có thông điệp tiếng Việt.
-- [ ] T041 [P] [US5] Tạo `scripts/lib/storage.ts`: tạo client `@supabase/supabase-js` bằng `NEXT_PUBLIC_SUPABASE_URL` và `SUPABASE_SECRET_KEY`; `ensureBucket("lesson-audio", { public: true })`; `uploadMp3(path, bytes)` (upsert) trả public URL
-- [ ] T042 [US5] Tạo `scripts/content-audio.ts` theo `contracts/cli.md`:
+- [x] T041 [P] [US5] Tạo `scripts/lib/storage.ts`: tạo client `@supabase/supabase-js` bằng `NEXT_PUBLIC_SUPABASE_URL` và `SUPABASE_SECRET_KEY`; `ensureBucket("lesson-audio", { public: true })`; `uploadMp3(path, bytes)` (upsert) trả public URL
+- [x] T042 [US5] Tạo `scripts/content-audio.ts` theo `contracts/cli.md`:
   - Kiểm biến môi trường.
   - Gom câu nghe và từ vựng chưa gỡ cần âm thanh theo data-model.md `exercises.audio_url`/`exercises.audio_hash`/`vocabulary.audio_url`/`vocabulary.audio_hash`, giọng lấy từ `courses.tts_voice`.
   - Gộp theo hash, sinh tuần tự giãn cách khoảng 3 giây.
   - Upload `"<course>/<hash>.mp3"`, rồi cập nhật mọi dòng cùng hash **sau khi** upload thành công.
   - Có cờ `--course`, `--dry-run`, `--limit`. In tổng kết `đã sinh / bỏ qua / lỗi`.
-- [ ] T043 [US5] Kiểm tra `src/components/lesson/utils.ts` và `lesson-player.tsx`: player phát `audioUrl` khi có, quay về giọng trình duyệt khi null (đã có sẵn; chỉ sửa nếu chưa đúng FR-029). Đảm bảo `/try` và `/lesson/[id]` truyền `audioUrl`.
-- [ ] T044 [US5] Kiểm chứng quickstart bước 7: chạy `content:audio` (cần resource Azure F0), nghe trong bài có câu nghe, chạy lại thì in `0 đã sinh`
+- [x] T043 [US5] Kiểm tra `src/components/lesson/utils.ts` và `lesson-player.tsx`: player phát `audioUrl` khi có, quay về giọng trình duyệt khi null (đã có sẵn; chỉ sửa nếu chưa đúng FR-029). Đảm bảo `/try` và `/lesson/[id]` truyền `audioUrl`.
+- [x] T044 [US5] Kiểm chứng quickstart bước 7: chạy `content:audio` (cần `SUPABASE_SECRET_KEY`), nghe trong bài có câu nghe, chạy lại thì in `0 đã sinh`
 
-**Checkpoint**: Câu nghe dùng giọng Azure; chạy lại không tốn yêu cầu.
+**Checkpoint**: Câu nghe dùng giọng Kokoro; chạy lại không sinh lại.
 
 ---
 
 ## Phase 7: User Story 4 · AI soạn nháp một bài thành file (Priority: P2)
 
-**Goal**: `content:draft` tạo file bài YAML nháp đúng định dạng, đánh dấu AI, chưa xuất bản, kèm kết quả kiểm tra.
+**Goal**: skill `/soan-bai` (từ 2026-11-23; ban đầu là lệnh `content:draft`) tạo file bài YAML nháp đúng định dạng, đánh dấu AI, chưa xuất bản, kèm kết quả kiểm tra.
 
 **Independent Test**: quickstart bước 6.
 
 ### Tests cho US4
 
-- [ ] T045 [P] [US4] Viết test `src/lib/content/draft.test.ts`:
+- [x] T045 [P] [US4] *(Đã gỡ ở T067.)* Viết test `src/lib/content/draft.test.ts`:
   - `draftToYaml(draft)` cho ra YAML mà `parseContent` đọc lại được.
   - Mọi câu có `aiGenerated: true`, bài có `published: false`.
   - `explanation` nhiều dòng dùng block `|`.
@@ -289,17 +289,17 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Implementation cho US4
 
-- [ ] T046 [US4] Cài `src/lib/content/draft.ts` (`draftToYaml`, `addLessonToUnitYaml`, dùng `yaml` Document API để giữ ghi chú). Làm cho T045 qua.
-- [ ] T047 [US4] Sửa `src/lib/ai.ts`:
+- [x] T046 [US4] *(Đã gỡ ở T067.)* Cài `src/lib/content/draft.ts` (`draftToYaml`, `addLessonToUnitYaml`, dùng `yaml` Document API để giữ ghi chú). Làm cho T045 qua.
+- [x] T047 [US4] *(`generateLessonDraft` đã gỡ ở T067; việc xóa `generateExercises` giữ nguyên.)* Sửa `src/lib/ai.ts`:
   - Thêm `generateLessonDraft({ level, courseTitle, unitTitle, topic, words, allowedWords, count, types })` theo research R9: schema "lỏng" có `id` cho câu và `explanation` bắt buộc; prompt yêu cầu chỉ dùng `allowedWords`, mỗi câu một đáp án, sắp từ dễ đến khó.
   - Kiểm lại từng câu bằng `exerciseData`.
   - Xóa `generateExercises` cùng các kiểu chỉ nó dùng.
-- [ ] T048 [US4] Tạo `scripts/content-draft.ts` theo `contracts/cli.md`:
+- [x] T048 [US4] *(Đã thay bằng T066.)* Tạo `scripts/content-draft.ts` theo `contracts/cli.md`:
   - Đọc tham số; thiếu `ANTHROPIC_API_KEY` thì dừng (FR-024).
   - Tìm thư mục khóa và unit theo `id`; gợi ý các từ chưa có trong `unit.yaml`.
   - Gọi `generateLessonDraft`, rồi ghi file mới (không ghi đè nếu không có `--force`, FR-022) và thêm id vào `unit.yaml`.
   - Chạy `parseContent` + `validateContent` trên cả khóa, in lỗi của file mới. Không kết nối DB.
-- [ ] T049 [US4] Kiểm chứng quickstart bước 6: soạn nháp → `git diff` → sửa → `content:check` → `content:import` → bài mới chưa xuất bản, câu mang cờ AI
+- [ ] T049 [US4] Kiểm chứng quickstart bước 6: `/soan-bai` → `git diff` → sửa → `content:check` → `content:import` → bài mới chưa xuất bản, câu mang cờ AI
 
 **Checkpoint**: Có thể soạn nội dung tính năng 002 nhanh bằng AI, vẫn qua review bằng diff.
 
@@ -313,17 +313,17 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ### Implementation cho US6
 
-- [ ] T051 [P] [US6] Sửa `src/components/lesson/lesson-player.tsx`: thêm `mode: "preview"` hoạt động như `trial` (không gọi server, không ghi XP, tim hay tiến độ), nút thoát và màn kết quả dẫn về `exitHref` truyền vào
-- [ ] T052 [US6] Dọn `src/app/admin/actions.ts`: chỉ giữ `togglePublished` (có `requireAdmin`, `revalidatePath` cho `/admin` và `/learn`). Xóa `createCourse`, `createUnit`, `createLesson`, `saveExercise`, action AI và các import thừa (FR-034).
-- [ ] T053 [US6] Dọn `src/app/admin/forms.tsx`: chỉ giữ `PublishToggle`, xóa `QuickAddForm`, form câu hỏi và form AI
-- [ ] T054 [US6] Viết lại `src/app/admin/page.tsx` theo bảng "Trang quản trị (UI)" trong `contracts/cli.md`:
+- [x] T051 [P] [US6] Sửa `src/components/lesson/lesson-player.tsx`: thêm `mode: "preview"` hoạt động như `trial` (không gọi server, không ghi XP, tim hay tiến độ), nút thoát và màn kết quả dẫn về `exitHref` truyền vào
+- [x] T052 [US6] Dọn `src/app/admin/actions.ts`: chỉ giữ `togglePublished` (có `requireAdmin`, `revalidatePath` cho `/admin` và `/learn`). Xóa `createCourse`, `createUnit`, `createLesson`, `saveExercise`, action AI và các import thừa (FR-034).
+- [x] T053 [US6] Dọn `src/app/admin/forms.tsx`: chỉ giữ `PublishToggle`, xóa `QuickAddForm`, form câu hỏi và form AI
+- [x] T054 [US6] Viết lại `src/app/admin/page.tsx` theo bảng "Trang quản trị (UI)" trong `contracts/cli.md`:
   - Cây khóa → unit → bài, bỏ mục có `archivedAt`, kèm số mục đã gỡ.
   - Mỗi bài có: số câu, số câu `aiGenerated`, số câu có `audioUrl`, `sourcePath`, `PublishToggle`, link xem trước.
   - Khóa có `PublishToggle`.
   - Khung "Kiểm tra gần nhất" đọc bản `content_reports` mới nhất: thời điểm, outcome, commit, danh sách lỗi và cảnh báo.
   - Dữ liệu theo request đặt sau `await connection()` hoặc trong `<Suspense>`. Dùng được ở 375px.
-- [ ] T055 [US6] Viết lại `src/app/admin/lessons/[id]/page.tsx`, gọi `await requireAdmin()` ngay trong page (không chỉ dựa vào layout; constitution, Nguyên tắc II): danh sách câu chỉ đọc (dạng theo `exerciseTypeLabels`, đề, đáp án qua `correctAnswerText`, giải thích, cờ AI, có âm thanh hay không), đường dẫn file nguồn, nút "Xem trước", ghi chú "Sửa nội dung trong file rồi chạy npm run content:import". Không có ô sửa.
-- [ ] T056 [US6] Tạo `src/app/admin/lessons/[id]/preview/page.tsx` (đọc trước docs của Next về dynamic route và `connection`):
+- [x] T055 [US6] Viết lại `src/app/admin/lessons/[id]/page.tsx`, gọi `await requireAdmin()` ngay trong page (không chỉ dựa vào layout; constitution, Nguyên tắc II): danh sách câu chỉ đọc (dạng theo `exerciseTypeLabels`, đề, đáp án qua `correctAnswerText`, giải thích, cờ AI, có âm thanh hay không), đường dẫn file nguồn, nút "Xem trước", ghi chú "Sửa nội dung trong file rồi chạy npm run content:import". Không có ô sửa.
+- [x] T056 [US6] Tạo `src/app/admin/lessons/[id]/preview/page.tsx` (đọc trước docs của Next về dynamic route và `connection`):
   - `params` là Promise; gọi `await requireAdmin()` ngay trong page, không chỉ dựa vào layout (constitution, Nguyên tắc II).
   - Lấy bài bằng `getLessonWithExercises`, kể cả bài chưa xuất bản.
   - Render `LessonPlayer` với `mode="preview"`, `exitHref` là trang bài.
@@ -339,19 +339,35 @@ description: "Danh sách task cho tính năng 001 · Quy trình nội dung bài 
 
 ## Phase 9: Polish & việc chung
 
-- [ ] T059 [P] Cập nhật `README.md`:
+- [x] T059 [P] Cập nhật `README.md`:
   - Mục "Chạy lần đầu": migrate, `content:import` thay cho `db:seed`, biến môi trường mới, tạo resource Azure F0.
   - Bảng lệnh: `test`, `content:*`.
   - Cấu trúc: thêm `content/`, `src/lib/content/`.
   - Mục mới "Soạn nội dung": vòng soạn → check → import → audio → xuất bản.
   - Bỏ "AI tạo bản nháp trong CMS".
-- [ ] T060 [P] Cập nhật `DECISIONS.md`:
+- [x] T060 [P] Cập nhật `DECISIONS.md`:
   - Audio: Azure Speech gói F0, sinh bằng lệnh, lưu bucket `lesson-audio`.
   - Thêm dòng "Nội dung: file YAML trong repo là bản gốc, /admin chỉ xem trước và xuất bản".
   - Sửa mục AI: soạn nháp bằng lệnh ra file.
-- [ ] T061 [P] Sửa `docs/speckit-plan.md`: đánh dấu 001 xong và ghi lệnh mới cho tính năng 002
-- [ ] T062 Chạy cổng chất lượng: `npm test`, `npm run typecheck`, `npm run lint`, `npx next build`; sửa mọi lỗi
+- [x] T061 [P] Sửa `docs/speckit-plan.md`: đánh dấu 001 xong và ghi lệnh mới cho tính năng 002
+- [x] T062 Chạy cổng chất lượng: `npm test`, `npm run typecheck`, `npm run lint`, `npx next build`; sửa mọi lỗi
 - [ ] T063 Chạy lại toàn bộ `quickstart.md` từ bước 1 tới bước 8, ghi kết quả. Tiêu chí SC-001…SC-008 đạt.
+
+---
+
+## Phase 10: Đổi sang công cụ miễn phí (2026-11-23)
+
+**Lý do**: không đăng ký được Azure, và Anthropic API tính tiền theo lượt (spec, Clarifications phiên 2026-11-23; research R3 và R9).
+
+- [x] T064 Cài `kokoro-js` 1.2.1 và `@breezystack/lamejs` 1.2.7 (devDependency). Thêm `/tmp-audio/` vào `.gitignore`.
+- [x] T065 [US5] Tạo `scripts/lib/kokoro-tts.ts` và xóa `scripts/lib/azure-tts.ts`:
+  - `synthesize({ text, voice })` sinh bằng Kokoro-82M (`fp32`, `cpu`) rồi mã hóa sang mp3 24 kHz mono 48 kbps.
+  - `disposeKokoro()`.
+  - `content-audio.ts` bỏ giãn cách và biến Azure, thêm `--sample/--voice`. Thoát bằng `process.exitCode` để tránh crash của onnxruntime.
+  - `course.yaml` dùng `ttsVoice: af_heart`; `schema.ts` kiểm tên giọng Kokoro (có test).
+- [x] T066 [US4] Tạo skill `.claude/skills/soan-bai/SKILL.md` theo `contracts/cli.md`.
+- [x] T067 [US4] Gỡ `scripts/content-draft.ts`, lệnh npm `content:draft`, `generateLessonDraft` trong `src/lib/ai.ts`, và `src/lib/content/draft.ts` kèm test.
+- [x] T068 Cập nhật spec, research, plan, contracts, quickstart, data-model, README, DECISIONS, `.env.example`, `docs/speckit-plan.md`. Sửa constitution lên v1.1.1 (PATCH: ghi rõ cách soạn nháp).
 
 ---
 
@@ -418,4 +434,4 @@ T015 sync.test.ts  |  T016 content/a1-starter/*  |  T025 fixtures  |  T026 words
 
 - Commit sau mỗi task hoặc nhóm task hợp lý, trên nhánh `feat/001-content-pipeline`.
 - Không sửa tay migration đã sinh (T006).
-- Cần resource Azure F0 trước T044; cần `ANTHROPIC_API_KEY` trước T049.
+- Cần `SUPABASE_SECRET_KEY` trước T044. T049 chạy trong Claude Code, không cần khóa API.

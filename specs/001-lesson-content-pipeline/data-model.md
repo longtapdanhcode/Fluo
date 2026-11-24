@@ -9,7 +9,7 @@ Thay đổi đi qua `src/db/schema.ts` → `npm run db:generate` → `npm run db
 | Cột | Kiểu | Thay đổi | Ghi chú |
 |---|---|---|---|
 | `slug` | text unique | giữ | Khóa đồng bộ = `id` trong `course.yaml` |
-| `tts_voice` | text null | **mới** | Giọng Azure khai báo trong `course.yaml`; script âm thanh đọc từ đây |
+| `tts_voice` | text null | **mới** | Giọng Kokoro (ví dụ `af_heart`) khai báo trong `course.yaml`; script âm thanh đọc từ đây |
 | `published` | boolean | giữ | Chỉ `/admin` đổi; import chỉ đặt khi tạo mới (FR-015) |
 
 ### `units`
